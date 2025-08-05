@@ -1,0 +1,25 @@
+{
+  "name": "simulador-fdco",
+  "version": "1.0.0",
+  "description": "Simulador FDCO - SUDECO (Resolução 4960)",
+  "main": "server/app.js",
+  "scripts": {
+    "start": "node server/app.js",
+    "dev": "nodemon server/app.js",
+    "build": "npm run copy-assets",
+    "copy-assets": "cp -r public/* dist/"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "compression": "^1.7.4",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["simulador", "fdco", "sudeco"],
+  "author": "SUDECO",
+  "license": "ISC"
+}
