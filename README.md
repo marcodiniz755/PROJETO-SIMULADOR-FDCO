@@ -13,13 +13,10 @@ O sistema permite calcular condições de financiamento, taxas TFD, cronogramas 
 - ✅ **Validação automática** de municípios e setores elegíveis
 - ✅ **Cronograma SAC** com período de carência configurável
 - ✅ **Interface responsiva** e moderna
-- ✅ **Arquitetura modular** separando frontend e backend
-- ✅ **Cache inteligente** para otimização de performance
 - ✅ **Compatibilidade total** com a legislação FDCO
 
-## 🏗️ Arquitetura
+## 🏗️ Arquitetura Frontend
 
-### Frontend
 ```
 public/
 ├── css/
@@ -28,214 +25,132 @@ public/
 ├── js/
 │   ├── services/
 │   │   ├── api.js         # Comunicação com APIs
-│   │   └── calculator.js  # Cálculos financeiros
-│   ├── utils/
-│   │   ├── formatters.js  # Formatação de dados
-│   │   └── validators.js  # Validações
+│   │   └── calculator.js  # Lógica de cálculos
 │   ├── components/
-│   │   ├── header.js      # Componente cabeçalho
-│   │   ├── parameters.js  # Parâmetros e fórmulas
-│   │   ├── form.js        # Formulário principal
-│   │   └── results.js     # Exibição de resultados
-│   └── app.js             # Aplicação principal
-└── index.html             # Página principal
+│   │   ├── form.js        # Componente do formulário
+│   │   ├── results.js     # Exibição de resultados
+│   │   └── parameters.js  # Parâmetros TFD
+│   └── utils/
+│       ├── validators.js  # Validações
+│       └── formatters.js  # Formatação
+├── index.html             # Página principal
+└── assets/               # Recursos estáticos
 ```
 
-### Backend
+### Backend Node.js
+
 ```
 server/
+├── app.js                # Servidor Express
 ├── routes/
-│   └── api.js            # Rotas da API
-├── data/
-│   └── municipalities.js # Dados dos municípios
-└── app.js               # Servidor Express
+│   └── api.js           # Rotas da API
+└── data/
+    └── municipalities.js # Dados dos municípios
 ```
 
-## 🛠️ Instalação e Configuração
+## 🛠️ Instalação e Uso
 
 ### Pré-requisitos
-- Node.js 16.x ou superior
-- npm ou yarn
+
+- Node.js 16+
+- NPM ou Yarn
 
 ### Instalação
+
 ```bash
-# Clonar o projeto
-git clone <repositorio>
-cd projeto_simulador
+# Clonar repositório
+git clone https://github.com/marcodiniz755/PROJETO-SIMULADOR-FDCO.git
+cd PROJETO-SIMULADOR-FDCO
 
 # Instalar dependências
 npm install
 
-# Iniciar em modo desenvolvimento
-npm run dev
-
-# Iniciar em modo produção
+# Iniciar servidor
 npm start
 ```
 
-### Scripts Disponíveis
+### Desenvolvimento
+
 ```bash
-npm start      # Iniciar servidor em produção
-npm run dev    # Iniciar com nodemon (desenvolvimento)
-npm run build  # Build de produção
+# Modo desenvolvimento (com hot reload)
+npm run dev
+
+# Build para produção
+npm run build
 ```
 
-## 🔧 Configuração
+## 🌐 Uso da Aplicação
 
-### Variáveis de Ambiente
-```bash
-# .env
-PORT=3000
-NODE_ENV=production
+1. Acesse `http://localhost:3000`
+2. Preencha os dados do projeto:
+   - Valor total do investimento
+   - Setor do projeto
+   - Localização (Estado/Município)
+   - Percentual de recursos próprios
+3. Configure parâmetros opcionais:
+   - Prazo do financiamento
+   - Período de carência
+4. Clique em "Calcular" para obter:
+   - Taxa TFD aplicável
+   - Valor financiável pelo FDCO
+   - Cronograma de pagamentos SAC
+
+## 📊 Cálculos Implementados
+
+### Taxa TFD (Taxa de Financiamento para o Desenvolvimento)
+
+A TFD é calculada pela fórmula:
 ```
-
-### APIs Externas
-O sistema integra automaticamente com:
-- **BACEN API** - Taxa de Longo Prazo (TLP): `https://api.bcb.gov.br/dados/serie/bcdata.sgs.27572/dados`
-- **IBGE API** - IPCA: `https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-2/variaveis/63`
-
-## 📊 Funcionalidades
-
-### Cálculo da TFD
-A Taxa de Financiamento para o Desenvolvimento é calculada usando:
-
-```
-TFD = FAM × [1 + (CDR × FP × TLP)]^(DU/252) - 1
+TFD = FAM × (1 + (CDR × FP × Juros_TLP))^(DU/252) - 1
 ```
 
 Onde:
-- **FAM**: Fator de Atualização Monetária
-- **CDR**: Coeficiente de Desequilíbrio Regional (1,00)
-- **FP**: Fator de Programa (A/B/C/D conforme setor e região)
-- **TLP**: Taxa de Longo Prazo do BACEN
-- **DU**: Dias Úteis no período
-
-### Fatores de Programa
-- **A (0,85)**: Saneamento em região PRIORITÁRIA
-- **B (1,05)**: Demais setores em região PRIORITÁRIA
-- **C (1,25)**: Saneamento em região DEMAIS
-- **D (1,45)**: Demais setores em região DEMAIS
+- **FAM**: Fator de Atualização Monetária (baseado no IPCA)
+- **CDR**: Coeficiente de Desconto Regional
+- **FP**: Fator de Programa (prioridade do setor)
+- **Juros_TLP**: Taxa de Longo Prazo do BACEN
+- **DU**: Dias úteis no mês
 
 ### Limites de Financiamento
-- **Infraestrutura**: até 80% (prioritária) / 70% (demais)
-- **Outros setores**: até 80% (prioritária) / 70% (demais)
-- **Máximo financiável**: 80% do investimento total
-- **Recursos próprios**: mínimo 20%
 
-## 🌍 Estados e Municípios Atendidos
+O FDCO pode financiar até:
+- **80%** para projetos prioritários
+- **70%** para projetos semi-prioritários  
+- **60%** para projetos não-prioritários
 
-- **DF** - Distrito Federal
-- **GO** - Goiás (246 municípios)
-- **MT** - Mato Grosso (141 municípios)
-- **MS** - Mato Grosso do Sul (79 municípios)
+## 🗺️ Abrangência Geográfica
 
-## 📋 Setores Elegíveis
+- **Distrito Federal**
+- **Goiás** (todos os municípios)
+- **Mato Grosso** (municípios elegíveis)
+- **Mato Grosso do Sul** (municípios elegíveis)
 
-### Infraestrutura (até 20 anos)
-- Saneamento Básico
-- Transportes (rodovias, ferrovias, hidrovias, aeroportos)
-- Armazenagem
-- Energia
-- Telecomunicações
-- Logística
+## 🔧 API Endpoints
 
-### Serviços (até 12 anos)
-- Turismo
-- Saúde
-- Educação
-- Transporte de passageiros
+### Frontend Node.js
 
-### Tradicionais (até 12 anos)
-- Agricultura e agronegócio
-- Indústria (diversos segmentos)
-- Ciência, tecnologia e inovação
+| Endpoint | Método | Descrição |
+|----------|--------|-----------|
+| `/` | GET | Página principal da aplicação |
+| `/health` | GET | Status da aplicação |
+| `/api/tlp` | GET | Buscar TLP do BACEN |
+| `/api/ipca` | GET | Buscar IPCA do IBGE |
 
-## 🔒 Segurança
+## 📈 Roadmap
 
-- Helmet.js para headers de segurança
-- CORS configurado
-- Sanitização de inputs
-- Rate limiting (em desenvolvimento)
-- Validação de dados server-side
+### Versão 2.0 (Em desenvolvimento - branch v2-fullstack)
+- ✅ Backend Java Spring Boot
+- ✅ API REST completa
+- ✅ Arquitetura microserviços
+- 🔄 Testes automatizados
+- 🔄 Documentação OpenAPI/Swagger
 
-## 📈 Performance
-
-- Compressão gzip
-- Cache de APIs externas (5 minutos)
-- Assets otimizados
-- Lazy loading de componentes
-
-## 🧪 Testes
-
-```bash
-# Executar testes (quando implementados)
-npm test
-
-# Coverage
-npm run test:coverage
-```
-
-## 📚 API Reference
-
-### Endpoints Principais
-
-#### `GET /api/tlp`
-Busca TLP atual do BACEN
-```json
-{
-  "valor": 7.51,
-  "data": "2024-08-01",
-  "fonte": "BACEN - Série 27572",
-  "timestamp": "2024-08-03T10:00:00.000Z"
-}
-```
-
-#### `GET /api/ipca`
-Busca IPCA dos últimos 2 meses
-```json
-{
-  "ipca_m1": { "valor": 0.24, "periodo": "202407" },
-  "ipca_m2": { "valor": 0.26, "periodo": "202406" },
-  "fonte": "IBGE - Agregado 1737",
-  "timestamp": "2024-08-03T10:00:00.000Z"
-}
-```
-
-#### `POST /api/calculate-fam`
-Calcula Fator de Atualização Monetária
-```json
-{
-  "ipca_m1": 0.24,
-  "ipca_m2": 0.26,
-  "ndup": 10,
-  "ndus": 13,
-  "ndmp": 21,
-  "ndms": 23
-}
-```
-
-#### `POST /api/calculate-tfd`
-Calcula Taxa de Financiamento para o Desenvolvimento
-```json
-{
-  "fam": 1.001234,
-  "tlp": 7.51,
-  "fp": 1.05,
-  "cdr": 1.0,
-  "du": 21,
-  "alpha": 1.0
-}
-```
-
-## 🎯 Roadmap
-
-- [ ] Implementação de testes automatizados
-- [ ] Dashboard administrativo
-- [ ] Exportação para PDF/Excel
-- [ ] Histórico de simulações
-- [ ] API GraphQL
-- [ ] PWA (Progressive Web App)
-- [ ] Modo offline básico
+### Futuras funcionalidades
+- 🔄 Dashboard administrativo
+- 🔄 Exportação PDF/Excel
+- 🔄 API GraphQL
+- 🔄 PWA (Progressive Web App)
+- 🔄 Integração com sistemas governamentais
 
 ## 🤝 Contribuição
 
@@ -247,7 +162,7 @@ Calcula Taxa de Financiamento para o Desenvolvimento
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a Licença ISC - veja o arquivo [LICENSE](LICENSE) para detalhes.
+Este projeto está sob a licença ISC. Veja o arquivo `LICENSE` para detalhes.
 
 ## 📞 Contato
 
@@ -264,6 +179,6 @@ Este projeto está licenciado sob a Licença ISC - veja o arquivo [LICENSE](LICE
 
 ---
 
-**Versão**: 2.1.2  
+**Versão**: 1.0.0  
 **Última atualização**: Agosto 2025  
 **Desenvolvido com**: Node.js, Express, Vanilla JavaScript
