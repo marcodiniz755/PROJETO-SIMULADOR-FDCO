@@ -15,6 +15,133 @@ class ApiService {
             ndms: 21,
             lastUpdate: null
         };
+        // Calcular dias úteis corretos na inicialização
+        this.updateBusinessDays();
+    }
+
+    // Função para verificar se é feriado nacional
+    isFeriado(data) {
+        const ano = data.getFullYear();
+        const mes = data.getMonth() + 1;
+        const dia = data.getDate();
+        
+        // Feriados fixos
+        const feriadosFixos = [
+            [1, 1],   // Confraternização Universal
+            [4, 21],  // Tiradentes
+            [5, 1],   // Dia do Trabalhador
+            [9, 7],   // Independência do Brasil
+            [10, 12], // Nossa Senhora Aparecida
+            [11, 2],  // Finados
+            [11, 15], // Proclamação da República
+            [12, 25]  // Natal
+        ];
+        
+        for (const [fMes, fDia] of feriadosFixos) {
+            if (mes === fMes && dia === fDia) {
+                return true;
+            }
+        }
+        
+        // Feriados móveis baseados na Páscoa
+        const pascoa = this.calcularPascoa(ano);
+        const carnaval = new Date(pascoa.getTime() - 47 * 24 * 60 * 60 * 1000);
+        const carnaval2 = new Date(pascoa.getTime() - 46 * 24 * 60 * 60 * 1000);
+        const sextaFeiraSanta = new Date(pascoa.getTime() - 2 * 24 * 60 * 60 * 1000);
+        const corpusChristi = new Date(pascoa.getTime() + 60 * 24 * 60 * 60 * 1000);
+        
+        const feriadosMoveis = [carnaval, carnaval2, sextaFeiraSanta, corpusChristi];
+        
+        return feriadosMoveis.some(feriado => 
+            feriado.getDate() === dia &&
+            feriado.getMonth() + 1 === mes &&
+            feriado.getFullYear() === ano
+        );
+    }
+
+    // Calcular Páscoa (algoritmo de Gauss)
+    calcularPascoa(ano) {
+        const a = ano % 19;
+        const b = Math.floor(ano / 100);
+        const c = ano % 100;
+        const d = Math.floor(b / 4);
+        const e = b % 4;
+        const f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3);
+        const h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4);
+        const k = c % 4;
+        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const mes = Math.floor((h + l - 7 * m + 114) / 31);
+        const dia = ((h + l - 7 * m + 114) % 31) + 1;
+        
+        return new Date(ano, mes - 1, dia);
+    }
+
+    // Verificar se é dia útil
+    isBusinessDay(date) {
+        const dayOfWeek = date.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) return false; // Domingo ou Sábado
+        return !this.isFeriado(date);
+    }
+
+    // Contar dias úteis em um período
+    countBusinessDays(startDate, endDate) {
+        let count = 0;
+        const current = new Date(startDate);
+        
+        while (current <= endDate) {
+            if (this.isBusinessDay(current)) {
+                count++;
+            }
+            current.setDate(current.getDate() + 1);
+        }
+        
+        return count;
+    }
+
+    // Atualizar cálculo dos dias úteis
+    updateBusinessDays() {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const mesReferencia = now.getMonth(); // 0-based (agosto = 7)
+        
+        // NDUP: 1-14 do mês de referência
+        const inicioNdup = new Date(currentYear, mesReferencia, 1);
+        const fimNdup = new Date(currentYear, mesReferencia, 14);
+        this.tfdParameters.ndup = this.countBusinessDays(inicioNdup, fimNdup);
+
+        // NDUS: 15-último dia do mês de referência
+        const inicioNdus = new Date(currentYear, mesReferencia, 15);
+        const fimNdus = new Date(currentYear, mesReferencia + 1, 0); // Último dia do mês
+        this.tfdParameters.ndus = this.countBusinessDays(inicioNdus, fimNdus);
+
+        // NDUSA: 15-último dia do mês anterior ao de referência
+        const mesAnterior = mesReferencia === 0 ? 11 : mesReferencia - 1;
+        const anoAnterior = mesReferencia === 0 ? currentYear - 1 : currentYear;
+        const inicioNdusa = new Date(anoAnterior, mesAnterior, 15);
+        const fimNdusa = new Date(currentYear, mesReferencia, 0); // Último dia do mês anterior
+        const ndusa = this.countBusinessDays(inicioNdusa, fimNdusa);
+
+        // NDUPX: 1-14 do mês posterior ao de referência
+        const mesProximo = mesReferencia === 11 ? 0 : mesReferencia + 1;
+        const anoProximo = mesReferencia === 11 ? currentYear + 1 : currentYear;
+        const inicioNdupx = new Date(anoProximo, mesProximo, 1);
+        const fimNdupx = new Date(anoProximo, mesProximo, 14);
+        const ndupx = this.countBusinessDays(inicioNdupx, fimNdupx);
+
+        // Calcular NDMP e NDMS
+        this.tfdParameters.ndmp = this.tfdParameters.ndup + ndusa;
+        this.tfdParameters.ndms = this.tfdParameters.ndus + ndupx;
+
+        console.log(`📅 Dias úteis calculados para ${now.toLocaleDateString('pt-BR')}:`);
+        console.log(`   NDUP (1-14 referência): ${this.tfdParameters.ndup}`);
+        console.log(`   NDUS (15-fim referência): ${this.tfdParameters.ndus}`);
+        console.log(`   NDUSA (15-fim anterior): ${ndusa}`);
+        console.log(`   NDUPX (1-14 próximo): ${ndupx}`);
+        console.log(`   NDMP (ndup + ndusa): ${this.tfdParameters.ndmp}`);
+        console.log(`   NDMS (ndus + ndupx): ${this.tfdParameters.ndms}`);
     }
 
     // Função para buscar TLP do BACEN

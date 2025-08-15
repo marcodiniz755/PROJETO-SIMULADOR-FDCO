@@ -20,7 +20,7 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
             scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "https://api.bcb.gov.br", "https://servicodados.ibge.gov.br"]
+            connectSrc: ["'self'", "https://api.bcb.gov.br", "https://servicodados.ibge.gov.br", "http://localhost:8082"]
         }
     }
 }));

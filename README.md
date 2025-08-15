@@ -2,7 +2,7 @@
 
 ## 📋 Descrição
 
-Simulador oficial para financiamentos do **Fundo de Desenvolvimento do Centro-Oeste (FDCO)** da SUDECO (Superintendência do Desenvolvimento do Centro-Oeste), implementando as regras da **Resolução 4960/2024**.
+Simulador oficial para financiamentos do **Fundo de Desenvolvimento do Centro-Oeste (FDCO)** da SUDECO (Superintendência do Desenvolvimento do Centro-Oeste), implementando as regras da **Resolução 4960/2021**.
 
 O sistema permite calcular condições de financiamento, taxas TFD, cronogramas de pagamento SAC e validações automáticas conforme a legislação vigente.
 
@@ -170,7 +170,6 @@ Onde:
 ```bash
 # Executar testes (quando implementados)
 npm test
-
 # Coverage
 npm run test:coverage
 ```
@@ -259,7 +258,7 @@ Este projeto está licenciado sob a Licença ISC - veja o arquivo [LICENSE](LICE
 
 - [Resolução CONDEL/SUDECO 135/2022](link-para-documento)
 - [Resolução CONDEL/SUDECO 144/2023](link-para-documento)
-- [Resolução CMN 4960/2024](link-para-documento)
+- [Resolução CMN 4960/2021](link-para-documento)
 - [Política Nacional de Desenvolvimento Regional (PNDR)](link-para-documento)
 
 ---

@@ -61,8 +61,58 @@ class CalculatorService {
         return parseFloat(fam.toFixed(9));
     }
 
-    // Calcular TFD
-    calculateTFD(fp) {
+    // Calcular TFD usando API Java
+    async calculateTFD(fp) {
+        try {
+            const params = apiService.getTfdParameters();
+            const { jm, alpha, cdr, du, ipca_m1, ipca_m2, ndup, ndus, ndmp, ndms } = params;
+            
+            const tfdData = {
+                tlp: jm,
+                fp: fp,
+                ipca_m1: ipca_m1 * 100, // Converter para percentual (0.0024 -> 0.24)
+                ipca_m2: ipca_m2 * 100, // Converter para percentual (0.0026 -> 0.26)
+                alpha: alpha,
+                cdr: cdr,
+                ndup: ndup,
+                ndus: ndus,
+                ndmp: ndmp,
+                ndms: ndms,
+                du: du
+            };
+            
+            // Criar AbortController com timeout de 10 segundos
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const response = await fetch('http://localhost:8082/api/fdco/calcular-tfd', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(tfdData),
+                signal: controller.signal,
+                mode: 'cors'
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`Erro na API TFD: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            return result.tfd_anual; // Já vem em percentual
+            
+        } catch (error) {
+            console.warn('Erro ao calcular TFD via API, usando cálculo local:', error);
+            // Fallback para cálculo local
+            return this.calculateTFDLocal(fp);
+        }
+    }
+    
+    // Calcular TFD local (fallback)
+    calculateTFDLocal(fp) {
         const params = apiService.getTfdParameters();
         const { jm, alpha, cdr, du } = params;
         const jurosPrefixadosTLP = (alpha * jm) / 100;
@@ -226,7 +276,7 @@ class CalculatorService {
     }
 
     // Função principal de cálculo
-    calculateResults() {
+    async calculateResults() {
         const validation = window.canCalculate();
         if (!validation.canProceed) {
             window.showAlert('danger', validation.message);
@@ -267,7 +317,7 @@ class CalculatorService {
             }
             
             const fp = this.priorityFactors[priority];
-            const tfdRate = this.calculateTFD(fp);
+            const tfdRate = await this.calculateTFD(fp);
             
             const fdcoAmount = limits.fdcoAmount;
             const fdcoPercentage = totalInvestment > 0 ? (fdcoAmount / totalInvestment) * 100 : 0;
@@ -333,7 +383,7 @@ const calculatorService = new CalculatorService();
 
 // Funções globais para compatibilidade
 window.calculateFAM = () => calculatorService.calculateFAM();
-window.calculateTFD = (fp) => calculatorService.calculateTFD(fp);
+window.calculateTFD = async (fp) => await calculatorService.calculateTFD(fp);
 window.calculateLimits = (totalInvestment, projectSector, state, municipality, ownResourcesPerc, fixedInvestment) => 
     calculatorService.calculateLimits(totalInvestment, projectSector, state, municipality, ownResourcesPerc, fixedInvestment);
 window.generateSACSchedule = (principal, semestralRate, totalYears, gracePeriod) => 
