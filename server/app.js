@@ -72,7 +72,7 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'OK',
         timestamp: new Date().toISOString(),
-        version: '2.1.2',
+        version: '2.2.0',
         environment: NODE_ENV,
         uptime: process.uptime()
     });
@@ -82,7 +82,7 @@ app.get('/health', (req, res) => {
 app.get('/system-info', (req, res) => {
     res.json({
         name: 'Simulador FDCO',
-        version: '2.1.2',
+        version: '2.2.0',
         description: 'Fundo de Desenvolvimento do Centro-Oeste - SUDECO',
         author: 'SUDECO',
         environment: NODE_ENV,

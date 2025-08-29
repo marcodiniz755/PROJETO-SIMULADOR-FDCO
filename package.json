@@ -1,6 +1,6 @@
 {
   "name": "simulador-fdco-fullstack",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "description": "Simulador FDCO Fullstack - Frontend Node.js + Backend Java Spring Boot (Resolução 4960)",
   "main": "server/app.js",
   "scripts": {
