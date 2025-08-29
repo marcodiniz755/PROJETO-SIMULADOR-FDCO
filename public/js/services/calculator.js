@@ -123,6 +123,16 @@ class CalculatorService {
         const termo3 = Math.pow(termo2, expoente);
         const tfd_mensal = fam * termo3 - 1;
         const tfd_anual = Math.pow(1 + tfd_mensal, 12) - 1;
+        
+        // Debug para verificar valores
+        console.log('📊 Cálculo TFD - Parâmetros:');
+        console.log(`   FP: ${fp}`);
+        console.log(`   JM (TLP): ${jm}%`);
+        console.log(`   DU: ${du}`);
+        console.log(`   FAM: ${fam}`);
+        console.log(`   TFD Mensal: ${(tfd_mensal * 100).toFixed(4)}%`);
+        console.log(`   TFD Anual: ${(tfd_anual * 100).toFixed(2)}%`);
+        
         return tfd_anual * 100;
     }
 

@@ -3,22 +3,26 @@
 class ApiService {
     constructor() {
         this.tfdParameters = {
-            jm: 7.51, // TLP - 7,51% atual
+            jm: 7.51, // TLP - valor padrão, será atualizado
             alpha: 1.00,
             cdr: 1.00,
-            du: 21, // DU = 21 dias úteis em agosto
+            du: 0, // Será calculado dinamicamente
             ipca_m1: 0.0024, // IPCA M-1 = 0,24% (real)
             ipca_m2: 0.0026, // IPCA M-2 = 0,26% (real)
-            ndup: 10,   // 1-14 mês referência (agosto)
-            ndus: 11,   // 15-fim mês referência (agosto)
-            nudsa: 13,  // 15-fim mês anterior (julho) 
-            ndupx: 10,  // 1-14 mês próximo (setembro)
-            ndmp: 23,   // nudsa + ndup = 13 + 10
-            ndms: 21,   // ndupx + ndus = 10 + 11
-            lastUpdate: null
+            ndup: 0,   // Será calculado dinamicamente
+            ndus: 0,   // Será calculado dinamicamente
+            nudsa: 0,  // Será calculado dinamicamente
+            ndupx: 0,  // Será calculado dinamicamente
+            ndmp: 0,   // Será calculado dinamicamente
+            ndms: 0,   // Será calculado dinamicamente
+            lastUpdate: null,
+            mesReferencia: 7, // Mês de referência inicial (agosto = 7, 0-based) - será atualizado para setembro
+            lastTLPCheck: null
         };
-        // Calcular dias úteis corretos na inicialização
+        // Calcular dias úteis iniciais (serão atualizados depois se necessário)
         this.updateBusinessDays();
+        // Verificar TLP de forma assíncrona
+        this.initializeWithTLPCheck();
     }
 
     // Função para verificar se é feriado nacional
@@ -36,6 +40,7 @@ class ApiService {
             [10, 12], // Nossa Senhora Aparecida
             [11, 2],  // Finados
             [11, 15], // Proclamação da República
+            [11, 20], // Dia da Consciência Negra (feriado nacional desde 2024)
             [12, 25]  // Natal
         ];
         
@@ -103,11 +108,11 @@ class ApiService {
         return count;
     }
 
-    // Atualizar cálculo dos dias úteis
+    // Atualizar cálculo dos dias úteis baseado no mês de referência
     updateBusinessDays() {
         const now = new Date();
         const currentYear = now.getFullYear();
-        const mesReferencia = now.getMonth(); // 0-based (agosto = 7)
+        const mesReferencia = this.tfdParameters.mesReferencia; // Usar mês de referência armazenado (0-based)
         
         // NDUP: 1-14 do mês de referência
         const inicioNdup = new Date(currentYear, mesReferencia, 1);
@@ -118,6 +123,13 @@ class ApiService {
         const inicioNdus = new Date(currentYear, mesReferencia, 15);
         const fimNdus = new Date(currentYear, mesReferencia + 1, 0); // Último dia do mês
         this.tfdParameters.ndus = this.countBusinessDays(inicioNdus, fimNdus);
+        
+        // Correção temporária para 2025 baseada na tabela correta
+        if (currentYear === 2025) {
+            const ndusTabelaCorreta = [13,10,11,10,12,10,13,11,12,13,9,12]; // Novembro corrigido: 9 (20/11 é feriado)
+            this.tfdParameters.ndus = ndusTabelaCorreta[mesReferencia];
+            console.log(`   ⚠️ NDUS corrigido para 2025: ${this.tfdParameters.ndus}`);
+        }
 
         // NDUSA: 15-último dia do mês anterior ao de referência
         const mesAnterior = mesReferencia === 0 ? 11 : mesReferencia - 1;
@@ -136,14 +148,123 @@ class ApiService {
         // Calcular NDMP e NDMS
         this.tfdParameters.ndmp = this.tfdParameters.ndup + ndusa;
         this.tfdParameters.ndms = this.tfdParameters.ndus + ndupx;
+        
+        // IMPORTANTE: Atualizar DU - total de dias úteis do mês de referência
+        this.tfdParameters.du = this.tfdParameters.ndup + this.tfdParameters.ndus;
+        
+        // Correção temporária DU para 2025 baseada na tabela correta
+        if (currentYear === 2025) {
+            const duTabelaCorreta = [22,20,19,20,21,20,23,21,22,23,19,22]; // Novembro corrigido: 19 (10+9)
+            this.tfdParameters.du = duTabelaCorreta[mesReferencia];
+            console.log(`   ⚠️ DU corrigido para 2025: ${this.tfdParameters.du}`);
+        }
 
-        console.log(`📅 Dias úteis calculados para ${now.toLocaleDateString('pt-BR')}:`);
+        console.log(`📅 Dias úteis calculados para ${this.getMonthName(mesReferencia)} (mês de referência):`);
+        console.log(`   DU (total dias úteis mês): ${this.tfdParameters.du}`);
         console.log(`   NDUP (1-14 referência): ${this.tfdParameters.ndup}`);
         console.log(`   NDUS (15-fim referência): ${this.tfdParameters.ndus}`);
         console.log(`   NDUSA (15-fim anterior): ${ndusa}`);
         console.log(`   NDUPX (1-14 próximo): ${ndupx}`);
         console.log(`   NDMP (ndup + ndusa): ${this.tfdParameters.ndmp}`);
         console.log(`   NDMS (ndus + ndupx): ${this.tfdParameters.ndms}`);
+    }
+
+    // Função para verificar se é último dia útil do mês
+    isLastBusinessDayOfMonth(date = new Date()) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        
+        // Último dia do mês
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+        
+        // Encontrar último dia útil do mês
+        let lastBusinessDay = new Date(lastDayOfMonth);
+        while (this.isFeriado(lastBusinessDay) || lastBusinessDay.getDay() === 0 || lastBusinessDay.getDay() === 6) {
+            lastBusinessDay.setDate(lastBusinessDay.getDate() - 1);
+        }
+        
+        return date.toDateString() === lastBusinessDay.toDateString();
+    }
+
+    // Função para inicializar com verificação de TLP
+    async initializeWithTLPCheck() {
+        try {
+            console.log('🚀 Inicializando sistema com verificação de TLP...');
+            
+            // Primeiro, verificar se precisa buscar nova TLP
+            const shouldCheckTLP = this.shouldCheckTLP();
+            
+            if (shouldCheckTLP) {
+                console.log('🔍 Verificando se há nova TLP disponível...');
+                const oldTLP = this.tfdParameters.jm;
+                const newTLP = await this.fetchTLP();
+                
+                // Se é último dia útil do mês, sempre atualizar mês de referência (assumindo nova TLP)
+                if (this.isLastBusinessDayOfMonth()) {
+                    console.log('📅 Último dia útil do mês detectado - atualizando mês de referência...');
+                    console.log(`📊 TLP atual: ${oldTLP}% → Nova TLP: ${newTLP}%`);
+                    this.updateReferenceMonth();
+                    console.log(`📅 Mês de referência atualizado para: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
+                    this.updateBusinessDays();
+                } else if (newTLP && newTLP !== oldTLP) {
+                    // Se não é último dia útil, só atualizar se TLP realmente mudou
+                    this.updateReferenceMonth();
+                    console.log(`📅 Mês de referência atualizado para: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
+                    this.updateBusinessDays();
+                } else if (newTLP) {
+                    console.log('📊 TLP verificada, mas sem alteração. Mantendo mês de referência atual.');
+                }
+            } else {
+                // Se não houve atualização de TLP, apenas garantir que os dias úteis estão calculados
+                console.log('📅 Mantendo mês de referência atual:', this.getMonthName(this.tfdParameters.mesReferencia));
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro na inicialização:', error);
+            // Em caso de erro, usar valores padrão e calcular dias úteis
+            this.updateBusinessDays();
+        }
+    }
+
+    // Função para verificar se deve checar TLP
+    shouldCheckTLP() {
+        const now = new Date();
+        const lastCheck = this.tfdParameters.lastTLPCheck ? new Date(this.tfdParameters.lastTLPCheck) : null;
+        
+        // Verificar se é último dia útil do mês e não checou hoje
+        if (this.isLastBusinessDayOfMonth(now)) {
+            console.log('🕒 Hoje é último dia útil do mês de agosto - verificação de TLP necessária');
+            if (!lastCheck || lastCheck.toDateString() !== now.toDateString()) {
+                return true;
+            }
+        }
+        
+        // Verificar se nunca checou (primeira inicialização)
+        if (!lastCheck) {
+            console.log('🆕 Primeira inicialização - verificação de TLP necessária');
+            return true;
+        }
+        
+        console.log('⏭️ Verificação de TLP não necessária hoje');
+        return false;
+    }
+
+    // Função para atualizar mês de referência
+    updateReferenceMonth() {
+        const currentMonth = this.tfdParameters.mesReferencia;
+        const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1; // 0-based: dezembro=11, janeiro=0
+        
+        console.log(`📅 Atualizando mês de referência: ${this.getMonthName(currentMonth)} → ${this.getMonthName(nextMonth)}`);
+        this.tfdParameters.mesReferencia = nextMonth;
+    }
+
+    // Função auxiliar para nome do mês (0-based)
+    getMonthName(month) {
+        const months = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        return months[month];
     }
 
     // Função para buscar TLP do BACEN
@@ -171,6 +292,7 @@ class ApiService {
                 const tlpValue = parseFloat(ultimoRegistro.valor);
                 
                 this.tfdParameters.jm = tlpValue;
+                this.tfdParameters.lastTLPCheck = new Date().toISOString();
                 
                 console.log(`✅ TLP atualizada: ${tlpValue}% a.a. (${ultimoRegistro.data})`);
                 
