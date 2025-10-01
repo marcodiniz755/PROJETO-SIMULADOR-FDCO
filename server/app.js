@@ -53,9 +53,15 @@ app.use('/css', express.static(path.join(__dirname, '../public/css'), {
 }));
 
 app.use('/js', express.static(path.join(__dirname, '../public/js'), {
-    maxAge: '1d',
+    maxAge: NODE_ENV === 'production' ? '1d' : '0',
     setHeaders: (res, path) => {
-        res.set('Cache-Control', 'public, max-age=86400'); // 1 dia
+        if (NODE_ENV === 'production') {
+            res.set('Cache-Control', 'public, max-age=86400'); // 1 dia em produção
+        } else {
+            res.set('Cache-Control', 'no-cache, no-store, must-revalidate'); // Sem cache em desenvolvimento
+            res.set('Pragma', 'no-cache');
+            res.set('Expires', '0');
+        }
     }
 }));
 
@@ -72,7 +78,7 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'OK',
         timestamp: new Date().toISOString(),
-        version: '2.2.0',
+        version: '2.2.1',
         environment: NODE_ENV,
         uptime: process.uptime()
     });
@@ -82,7 +88,7 @@ app.get('/health', (req, res) => {
 app.get('/system-info', (req, res) => {
     res.json({
         name: 'Simulador FDCO',
-        version: '2.2.0',
+        version: '2.2.1',
         description: 'Fundo de Desenvolvimento do Centro-Oeste - SUDECO',
         author: 'SUDECO',
         environment: NODE_ENV,

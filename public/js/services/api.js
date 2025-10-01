@@ -2,6 +2,10 @@
 
 class ApiService {
     constructor() {
+        // Inicializar parâmetros TFD
+        const now = new Date();
+        const currentMonth = now.getMonth(); // 0-based
+
         this.tfdParameters = {
             jm: 7.51, // TLP - valor padrão, será atualizado
             alpha: 1.00,
@@ -16,9 +20,12 @@ class ApiService {
             ndmp: 0,   // Será calculado dinamicamente
             ndms: 0,   // Será calculado dinamicamente
             lastUpdate: null,
-            mesReferencia: 7, // Mês de referência inicial (agosto = 7, 0-based) - será atualizado para setembro
+            mesReferencia: currentMonth, // Mês de referência = mês atual (0-based)
             lastTLPCheck: null
         };
+
+        console.log(`📅 Inicializando com mês de referência: ${this.getMonthName(currentMonth)} (${currentMonth})`);
+
         // Calcular dias úteis iniciais (serão atualizados depois se necessário)
         this.updateBusinessDays();
         // Verificar TLP de forma assíncrona
@@ -126,7 +133,7 @@ class ApiService {
         
         // Correção temporária para 2025 baseada na tabela correta
         if (currentYear === 2025) {
-            const ndusTabelaCorreta = [13,10,11,10,12,10,13,11,12,13,9,12]; // Novembro corrigido: 9 (20/11 é feriado)
+            const ndusTabelaCorreta = [13,10,11,10,12,10,13,11,12,13,9,12]; // Nov: 9 (20/11 é feriado)
             this.tfdParameters.ndus = ndusTabelaCorreta[mesReferencia];
             console.log(`   ⚠️ NDUS corrigido para 2025: ${this.tfdParameters.ndus}`);
         }
@@ -148,6 +155,13 @@ class ApiService {
         // Calcular NDMP e NDMS
         this.tfdParameters.ndmp = this.tfdParameters.ndup + ndusa;
         this.tfdParameters.ndms = this.tfdParameters.ndus + ndupx;
+        
+        // Correção temporária NDMS para 2025
+        if (currentYear === 2025) {
+            const ndmsTabelaCorreta = [23,18,21,19,22,20,23,21,22,23,19,21]; // Nov: 19 (20/11 é feriado)
+            this.tfdParameters.ndms = ndmsTabelaCorreta[mesReferencia];
+            console.log(`   ⚠️ NDMS corrigido para 2025: ${this.tfdParameters.ndms}`);
+        }
         
         // IMPORTANTE: Atualizar DU - total de dias úteis do mês de referência
         this.tfdParameters.du = this.tfdParameters.ndup + this.tfdParameters.ndus;
@@ -186,39 +200,46 @@ class ApiService {
         return date.toDateString() === lastBusinessDay.toDateString();
     }
 
-    // Função para inicializar com verificação de TLP
+    // Função para inicializar com verificação de TLP e IPCA
     async initializeWithTLPCheck() {
         try {
-            console.log('🚀 Inicializando sistema com verificação de TLP...');
-            
-            // Primeiro, verificar se precisa buscar nova TLP
+            console.log('🚀 Inicializando sistema com verificação de TLP e IPCA...');
+
+            // Buscar IPCA automaticamente ao iniciar
+            console.log('🔍 Buscando IPCA automaticamente...');
+            await this.fetchIPCA();
+
+            // Verificar se precisa buscar nova TLP
             const shouldCheckTLP = this.shouldCheckTLP();
-            
+
             if (shouldCheckTLP) {
                 console.log('🔍 Verificando se há nova TLP disponível...');
                 const oldTLP = this.tfdParameters.jm;
                 const newTLP = await this.fetchTLP();
-                
-                // Se é último dia útil do mês, sempre atualizar mês de referência (assumindo nova TLP)
+
+                // REGRA: Só atualizar mês de referência se for último dia útil do mês
                 if (this.isLastBusinessDayOfMonth()) {
                     console.log('📅 Último dia útil do mês detectado - atualizando mês de referência...');
                     console.log(`📊 TLP atual: ${oldTLP}% → Nova TLP: ${newTLP}%`);
                     this.updateReferenceMonth();
                     console.log(`📅 Mês de referência atualizado para: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
                     this.updateBusinessDays();
-                } else if (newTLP && newTLP !== oldTLP) {
-                    // Se não é último dia útil, só atualizar se TLP realmente mudou
-                    this.updateReferenceMonth();
-                    console.log(`📅 Mês de referência atualizado para: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
-                    this.updateBusinessDays();
-                } else if (newTLP) {
-                    console.log('📊 TLP verificada, mas sem alteração. Mantendo mês de referência atual.');
+                } else {
+                    // NÃO é último dia útil - manter mês de referência atual
+                    if (newTLP && newTLP !== oldTLP) {
+                        console.log(`📊 TLP atualizada de ${oldTLP}% para ${newTLP}%, mas mantendo mês de referência: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
+                    } else {
+                        console.log('📊 TLP verificada, sem alteração. Mantendo mês de referência atual.');
+                    }
                 }
             } else {
-                // Se não houve atualização de TLP, apenas garantir que os dias úteis estão calculados
+                // Se não houve verificação de TLP, apenas garantir que os dias úteis estão calculados
                 console.log('📅 Mantendo mês de referência atual:', this.getMonthName(this.tfdParameters.mesReferencia));
             }
-            
+
+            // Atualizar displays dos parâmetros após buscar IPCA
+            this.updateParameterDisplays();
+
         } catch (error) {
             console.error('❌ Erro na inicialização:', error);
             // Em caso de erro, usar valores padrão e calcular dias úteis
@@ -233,7 +254,7 @@ class ApiService {
         
         // Verificar se é último dia útil do mês e não checou hoje
         if (this.isLastBusinessDayOfMonth(now)) {
-            console.log('🕒 Hoje é último dia útil do mês de agosto - verificação de TLP necessária');
+            console.log('🕒 Hoje é último dia útil do mês - verificação de TLP necessária');
             if (!lastCheck || lastCheck.toDateString() !== now.toDateString()) {
                 return true;
             }
@@ -256,6 +277,16 @@ class ApiService {
         
         console.log(`📅 Atualizando mês de referência: ${this.getMonthName(currentMonth)} → ${this.getMonthName(nextMonth)}`);
         this.tfdParameters.mesReferencia = nextMonth;
+    }
+
+    // Função para calcular o mês de referência atual baseado na data
+    calculateCurrentReferenceMonth() {
+        const now = new Date();
+        const currentMonth = now.getMonth(); // 0-based: janeiro=0, dezembro=11
+        // O mês de referência é o mês atual
+        // Ex: Se estamos em outubro (01/10/2025), o mês de referência é outubro (9)
+        console.log(`📅 Calculando mês de referência: Data atual=${this.getMonthName(currentMonth)} (${currentMonth})`);
+        return currentMonth;
     }
 
     // Função auxiliar para nome do mês (0-based)
@@ -355,15 +386,17 @@ class ApiService {
             if (data && data[0] && data[0].resultados && data[0].resultados[0] && data[0].resultados[0].series) {
                 const series = data[0].resultados[0].series[0].serie;
                 const periods = Object.keys(series).slice(-2);
-                
+
+                console.log(`📊 Períodos IPCA retornados pela API: ${periods[0]} e ${periods[1]}`);
+
                 if (periods.length >= 2) {
-                    const ipcaM1 = parseFloat(series[periods[1]]) / 100;
-                    const ipcaM2 = parseFloat(series[periods[0]]) / 100;
-                    
+                    const ipcaM2 = parseFloat(series[periods[0]]) / 100; // Período mais antigo = M-2
+                    const ipcaM1 = parseFloat(series[periods[1]]) / 100; // Período mais recente = M-1
+
                     this.tfdParameters.ipca_m1 = ipcaM1;
                     this.tfdParameters.ipca_m2 = ipcaM2;
-                    
-                    console.log(`✅ IPCA atualizado: M-1: ${(ipcaM1*100).toFixed(2)}%, M-2: ${(ipcaM2*100).toFixed(2)}%`);
+
+                    console.log(`✅ IPCA atualizado - Período ${periods[0]} (M-2): ${(ipcaM2*100).toFixed(2)}%, Período ${periods[1]} (M-1): ${(ipcaM1*100).toFixed(2)}%`);
                     
                     const ipcaM1Display = document.getElementById('ipca-m1-display');
                     const ipcaM2Display = document.getElementById('ipca-m2-display');
@@ -508,6 +541,23 @@ class ApiService {
 
     getTfdParameters() {
         return this.tfdParameters;
+    }
+
+    // Método para atualizar displays de parâmetros
+    updateParameterDisplays() {
+        const ipcaM1Display = document.getElementById('ipca-m1-display');
+        const ipcaM2Display = document.getElementById('ipca-m2-display');
+        const ndupDisplay = document.getElementById('ndup-display');
+        const ndusDisplay = document.getElementById('ndus-display');
+        const ndmpDisplay = document.getElementById('ndmp-display');
+        const ndmsDisplay = document.getElementById('ndms-display');
+
+        if (ipcaM1Display) ipcaM1Display.textContent = `${(this.tfdParameters.ipca_m1*100).toFixed(2)}%`;
+        if (ipcaM2Display) ipcaM2Display.textContent = `${(this.tfdParameters.ipca_m2*100).toFixed(2)}%`;
+        if (ndupDisplay) ndupDisplay.textContent = this.tfdParameters.ndup;
+        if (ndusDisplay) ndusDisplay.textContent = this.tfdParameters.ndus;
+        if (ndmpDisplay) ndmpDisplay.textContent = this.tfdParameters.ndmp;
+        if (ndmsDisplay) ndmsDisplay.textContent = this.tfdParameters.ndms;
     }
 }
 

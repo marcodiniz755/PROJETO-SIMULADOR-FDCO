@@ -45,7 +45,7 @@ class ResultsComponent {
                             <strong>📚 SIMULADOR EDUCACIONAL</strong>
                         </div>
                         <div style="font-size: 0.85rem; color: #856404; line-height: 1.5;">
-                            Este simulador tem fins exclusivamente educacionais e de demonstração. Para consultas oficiais, acesse:
+                            Este simulador tem fins exclusivamente educacionais e de demonstração. Os dados obtidos nas parcelas SAC é considerando o dia do pagamento nesta data. No caso do financiamento REAL quem define esses valores é o Banco (Agente Operador), na data que vencer o pagamento da parcela. Para consultas oficiais, acesse:
                         </div>
                         <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.85rem;">
                             <a href="https://www.gov.br/sudeco" target="_blank" style="color: #0066cc; text-decoration: none;">
