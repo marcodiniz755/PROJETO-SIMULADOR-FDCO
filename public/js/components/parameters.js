@@ -56,7 +56,7 @@ class ParametersComponent {
             
             <div class="parameter-card">
                 <h4 style="font-size: 0.9rem;"><i class="fas fa-chart-line"></i> TLP - Taxa de Longo Prazo</h4>
-                <div class="parameter-value" id="param-tlp">7,51% a.a.</div>
+                <div class="parameter-value" id="param-tlp">7,70% a.a.</div>
                 <div class="parameter-description" style="font-size: 0.75rem; line-height: 1.3;">
                     Taxa oficial do BACEN, definida conforme metodologia do BNDES. Atualizada automaticamente via API oficial do Banco Central.
                     <br><strong>Fonte:</strong> API BCB - Série 27572

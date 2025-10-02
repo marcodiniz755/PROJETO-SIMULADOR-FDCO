@@ -73,8 +73,8 @@ router.get('/tlp', cacheMiddleware('tlp'), async (req, res) => {
             message: 'Não foi possível obter dados da TLP do BACEN',
             timestamp: new Date().toISOString(),
             fallback: {
-                valor: 7.51,
-                data: 'Valor padrão',
+                valor: 7.70,
+                data: 'Valor padrão (outubro/2025)',
                 fonte: 'Fallback'
             }
         });

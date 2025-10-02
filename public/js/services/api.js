@@ -2,34 +2,108 @@
 
 class ApiService {
     constructor() {
+        // Tentar carregar dados persistidos do localStorage
+        const cachedData = this.loadFromCache();
+
         // Inicializar parâmetros TFD
         const now = new Date();
         const currentMonth = now.getMonth(); // 0-based
 
         this.tfdParameters = {
-            jm: 7.51, // TLP - valor padrão, será atualizado
+            jm: cachedData?.jm || 7.70, // TLP - usa cache ou valor padrão
             alpha: 1.00,
             cdr: 1.00,
             du: 0, // Será calculado dinamicamente
-            ipca_m1: 0.0024, // IPCA M-1 = 0,24% (real)
-            ipca_m2: 0.0026, // IPCA M-2 = 0,26% (real)
+            ipca_m1: cachedData?.ipca_m1 || 0.0024, // IPCA M-1 - usa cache ou padrão
+            ipca_m2: cachedData?.ipca_m2 || 0.0026, // IPCA M-2 - usa cache ou padrão
             ndup: 0,   // Será calculado dinamicamente
             ndus: 0,   // Será calculado dinamicamente
             nudsa: 0,  // Será calculado dinamicamente
             ndupx: 0,  // Será calculado dinamicamente
             ndmp: 0,   // Será calculado dinamicamente
             ndms: 0,   // Será calculado dinamicamente
-            lastUpdate: null,
-            mesReferencia: currentMonth, // Mês de referência = mês atual (0-based)
-            lastTLPCheck: null
+            lastUpdate: cachedData?.lastUpdate || null,
+            mesReferencia: cachedData?.mesReferencia ?? currentMonth, // Usa cache ou mês atual
+            lastTLPCheck: cachedData?.lastTLPCheck || null
         };
 
-        console.log(`📅 Inicializando com mês de referência: ${this.getMonthName(currentMonth)} (${currentMonth})`);
+        console.log(`📅 Inicializando com mês de referência: ${this.getMonthName(this.tfdParameters.mesReferencia)} (${this.tfdParameters.mesReferencia})`);
+        if (cachedData) {
+            console.log(`💾 Dados carregados do cache: TLP=${this.tfdParameters.jm}%, última verificação=${cachedData.lastTLPCheck ? new Date(cachedData.lastTLPCheck).toLocaleDateString('pt-BR') : 'nunca'}`);
+        }
 
         // Calcular dias úteis iniciais (serão atualizados depois se necessário)
         this.updateBusinessDays();
         // Verificar TLP de forma assíncrona
         this.initializeWithTLPCheck();
+    }
+
+    // Função para carregar dados do cache (localStorage)
+    loadFromCache() {
+        try {
+            const cached = localStorage.getItem('fdco_tlp_cache');
+            if (!cached) return null;
+
+            const data = JSON.parse(cached);
+            console.log('💾 Cache encontrado no localStorage');
+
+            // Validar se os dados não estão muito antigos (ex: mais de 60 dias)
+            if (data.lastTLPCheck) {
+                const lastCheck = new Date(data.lastTLPCheck);
+                const now = new Date();
+                const daysDiff = Math.floor((now - lastCheck) / (1000 * 60 * 60 * 24));
+
+                if (daysDiff > 60) {
+                    console.log(`⚠️ Cache muito antigo (${daysDiff} dias) - será descartado`);
+                    localStorage.removeItem('fdco_tlp_cache');
+                    return null;
+                }
+            }
+
+            // Validar se o mês de referência do cache ainda é válido
+            // Se mudou o mês calendário, pode ser necessário validar o mês de referência
+            const now = new Date();
+            const currentMonth = now.getMonth(); // 0-based
+
+            // Se o cache tem um mês de referência definido, verificar se ainda é apropriado
+            if (data.mesReferencia !== undefined && data.mesReferencia !== null) {
+                // Se o mês de referência do cache é anterior ao mês atual em mais de 1 mês,
+                // invalidar o cache (pode estar desatualizado)
+                let monthDiff = currentMonth - data.mesReferencia;
+                if (monthDiff < 0) monthDiff += 12; // Ajuste para virada de ano
+
+                if (monthDiff > 1) {
+                    console.log(`⚠️ Mês de referência do cache (${this.getMonthName(data.mesReferencia)}) muito antigo - será descartado`);
+                    localStorage.removeItem('fdco_tlp_cache');
+                    return null;
+                }
+            }
+
+            return data;
+        } catch (error) {
+            console.error('❌ Erro ao carregar cache:', error);
+            return null;
+        }
+    }
+
+    // Função para salvar dados no cache (localStorage)
+    saveToCache() {
+        try {
+            const dataToCache = {
+                jm: this.tfdParameters.jm,
+                ipca_m1: this.tfdParameters.ipca_m1,
+                ipca_m2: this.tfdParameters.ipca_m2,
+                mesReferencia: this.tfdParameters.mesReferencia,
+                lastUpdate: this.tfdParameters.lastUpdate,
+                lastTLPCheck: this.tfdParameters.lastTLPCheck,
+                cachedAt: new Date().toISOString()
+            };
+
+            localStorage.setItem('fdco_tlp_cache', JSON.stringify(dataToCache));
+            console.log('💾 Dados salvos no cache local');
+        } catch (error) {
+            console.error('❌ Erro ao salvar cache:', error);
+        }
     }
 
     // Função para verificar se é feriado nacional
@@ -204,6 +278,7 @@ class ApiService {
     async initializeWithTLPCheck() {
         try {
             console.log('🚀 Inicializando sistema com verificação de TLP e IPCA...');
+            console.log(`📅 Mês de referência inicial: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
 
             // Buscar IPCA automaticamente ao iniciar
             console.log('🔍 Buscando IPCA automaticamente...');
@@ -211,30 +286,35 @@ class ApiService {
 
             // Verificar se precisa buscar nova TLP
             const shouldCheckTLP = this.shouldCheckTLP();
+            const isFirstInit = !this.tfdParameters.lastTLPCheck;
 
             if (shouldCheckTLP) {
                 console.log('🔍 Verificando se há nova TLP disponível...');
                 const oldTLP = this.tfdParameters.jm;
                 const newTLP = await this.fetchTLP();
 
-                // REGRA: Só atualizar mês de referência se for último dia útil do mês
-                if (this.isLastBusinessDayOfMonth()) {
+                if (isFirstInit) {
+                    // PRIMEIRA INICIALIZAÇÃO: mês de referência já está correto (mês atual)
+                    console.log(`📊 Primeira inicialização - TLP buscada: ${newTLP}%`);
+                    console.log(`📅 Mês de referência: ${this.getMonthName(this.tfdParameters.mesReferencia)} (já está correto)`);
+                } else if (this.isLastBusinessDayOfMonth()) {
+                    // ÚLTIMO DIA ÚTIL: incrementar mês de referência para o próximo mês
                     console.log('📅 Último dia útil do mês detectado - atualizando mês de referência...');
                     console.log(`📊 TLP atual: ${oldTLP}% → Nova TLP: ${newTLP}%`);
                     this.updateReferenceMonth();
                     console.log(`📅 Mês de referência atualizado para: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
                     this.updateBusinessDays();
                 } else {
-                    // NÃO é último dia útil - manter mês de referência atual
+                    // DIA NORMAL: apenas atualizar TLP, manter mês de referência
                     if (newTLP && newTLP !== oldTLP) {
-                        console.log(`📊 TLP atualizada de ${oldTLP}% para ${newTLP}%, mas mantendo mês de referência: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
+                        console.log(`📊 TLP atualizada de ${oldTLP}% para ${newTLP}%`);
+                        console.log(`📅 Mantendo mês de referência: ${this.getMonthName(this.tfdParameters.mesReferencia)}`);
                     } else {
-                        console.log('📊 TLP verificada, sem alteração. Mantendo mês de referência atual.');
+                        console.log('📊 TLP verificada, sem alteração.');
                     }
                 }
             } else {
-                // Se não houve verificação de TLP, apenas garantir que os dias úteis estão calculados
-                console.log('📅 Mantendo mês de referência atual:', this.getMonthName(this.tfdParameters.mesReferencia));
+                console.log('📅 Mantendo configuração atual:', this.getMonthName(this.tfdParameters.mesReferencia));
             }
 
             // Atualizar displays dos parâmetros após buscar IPCA
@@ -251,21 +331,21 @@ class ApiService {
     shouldCheckTLP() {
         const now = new Date();
         const lastCheck = this.tfdParameters.lastTLPCheck ? new Date(this.tfdParameters.lastTLPCheck) : null;
-        
-        // Verificar se é último dia útil do mês e não checou hoje
-        if (this.isLastBusinessDayOfMonth(now)) {
-            console.log('🕒 Hoje é último dia útil do mês - verificação de TLP necessária');
-            if (!lastCheck || lastCheck.toDateString() !== now.toDateString()) {
-                return true;
-            }
-        }
-        
-        // Verificar se nunca checou (primeira inicialização)
+
+        // SEMPRE verificar na primeira inicialização (nunca checou antes)
         if (!lastCheck) {
             console.log('🆕 Primeira inicialização - verificação de TLP necessária');
             return true;
         }
-        
+
+        // Verificar se é último dia útil do mês e não checou hoje
+        if (this.isLastBusinessDayOfMonth(now)) {
+            console.log('🕒 Hoje é último dia útil do mês - verificação de TLP necessária');
+            if (lastCheck.toDateString() !== now.toDateString()) {
+                return true;
+            }
+        }
+
         console.log('⏭️ Verificação de TLP não necessária hoje');
         return false;
     }
@@ -274,9 +354,12 @@ class ApiService {
     updateReferenceMonth() {
         const currentMonth = this.tfdParameters.mesReferencia;
         const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1; // 0-based: dezembro=11, janeiro=0
-        
+
         console.log(`📅 Atualizando mês de referência: ${this.getMonthName(currentMonth)} → ${this.getMonthName(nextMonth)}`);
         this.tfdParameters.mesReferencia = nextMonth;
+
+        // Salvar no cache
+        this.saveToCache();
     }
 
     // Função para calcular o mês de referência atual baseado na data
@@ -302,7 +385,7 @@ class ApiService {
     async fetchTLP() {
         try {
             console.log('🔄 Tentando buscar TLP do BACEN (método direto)...');
-            
+
             const response = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.27572/dados?formato=json', {
                 method: 'GET',
                 mode: 'cors',
@@ -310,33 +393,36 @@ class ApiService {
                     'Accept': 'application/json'
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
+
             const data = await response.json();
             console.log('📊 Dados TLP recebidos:', data);
-            
+
             if (data && data.length > 0) {
                 const ultimoRegistro = data[data.length - 1];
                 const tlpValue = parseFloat(ultimoRegistro.valor);
-                
+
                 this.tfdParameters.jm = tlpValue;
                 this.tfdParameters.lastTLPCheck = new Date().toISOString();
-                
+
                 console.log(`✅ TLP atualizada: ${tlpValue}% a.a. (${ultimoRegistro.data})`);
-                
+
+                // Salvar no cache
+                this.saveToCache();
+
                 const paramTlpElement = document.getElementById('param-tlp');
                 if (paramTlpElement) {
                     paramTlpElement.textContent = `${tlpValue.toFixed(2)}% a.a.`;
                 }
-                
+
                 return tlpValue;
             }
         } catch (error) {
             console.error('❌ Erro ao buscar TLP:', error.message);
-            console.log(`📋 Mantendo TLP padrão: ${this.tfdParameters.jm}% a.a.`);
+            console.log(`📋 Mantendo TLP atual: ${this.tfdParameters.jm}% a.a. (cache ou padrão)`);
             return this.tfdParameters.jm;
         }
     }
@@ -344,16 +430,20 @@ class ApiService {
     // Função para atualizar TLP manualmente
     updateTLPManually(novoValor) {
         const valor = parseFloat(novoValor);
-        
+
         if (isNaN(valor) || valor <= 0) return;
-        
+
         const paramTlpElement = document.getElementById('param-tlp');
         if (paramTlpElement) {
             paramTlpElement.textContent = `${valor.toFixed(2)}% a.a.`;
         }
-        
+
         this.tfdParameters.jm = valor;
-        
+        this.tfdParameters.lastUpdate = new Date().toLocaleString('pt-BR');
+
+        // Salvar no cache
+        this.saveToCache();
+
         const indicator = document.getElementById('last-update-indicator');
         if (indicator) {
             indicator.innerHTML = `
@@ -368,7 +458,7 @@ class ApiService {
     async fetchIPCA() {
         try {
             console.log('🔄 Tentando buscar IPCA do IBGE...');
-            
+
             const response = await fetch('https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-2/variaveis/63?localidades=N1[all]', {
                 method: 'GET',
                 mode: 'cors',
@@ -376,13 +466,13 @@ class ApiService {
                     'Accept': 'application/json'
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (data && data[0] && data[0].resultados && data[0].resultados[0] && data[0].resultados[0].series) {
                 const series = data[0].resultados[0].series[0].serie;
                 const periods = Object.keys(series).slice(-2);
@@ -397,24 +487,27 @@ class ApiService {
                     this.tfdParameters.ipca_m2 = ipcaM2;
 
                     console.log(`✅ IPCA atualizado - Período ${periods[0]} (M-2): ${(ipcaM2*100).toFixed(2)}%, Período ${periods[1]} (M-1): ${(ipcaM1*100).toFixed(2)}%`);
-                    
+
+                    // Salvar no cache
+                    this.saveToCache();
+
                     const ipcaM1Display = document.getElementById('ipca-m1-display');
                     const ipcaM2Display = document.getElementById('ipca-m2-display');
-                    
+
                     if (ipcaM1Display) ipcaM1Display.textContent = `${(ipcaM1*100).toFixed(2)}%`;
                     if (ipcaM2Display) ipcaM2Display.textContent = `${(ipcaM2*100).toFixed(2)}%`;
-                    
+
                     return { ipcaM1, ipcaM2, periods };
                 }
             }
             throw new Error('Dados IPCA não encontrados');
         } catch (error) {
             console.error('❌ Erro ao buscar IPCA:', error.message);
-            console.log('📋 Mantendo IPCA padrão: M-1: 0,24%, M-2: 0,26%');
-            return { 
-                ipcaM1: this.tfdParameters.ipca_m1, 
+            console.log(`📋 Mantendo IPCA atual: M-1: ${(this.tfdParameters.ipca_m1*100).toFixed(2)}%, M-2: ${(this.tfdParameters.ipca_m2*100).toFixed(2)}% (cache ou padrão)`);
+            return {
+                ipcaM1: this.tfdParameters.ipca_m1,
                 ipcaM2: this.tfdParameters.ipca_m2,
-                periods: ['padrão', 'padrão']
+                periods: ['cache/padrão', 'cache/padrão']
             };
         }
     }
@@ -423,13 +516,16 @@ class ApiService {
     updateIPCAManually(m1Percent, m2Percent) {
         const ipcaM1 = parseFloat(m1Percent) / 100;
         const ipcaM2 = parseFloat(m2Percent) / 100;
-        
+
         this.tfdParameters.ipca_m1 = ipcaM1;
         this.tfdParameters.ipca_m2 = ipcaM2;
-        
+
+        // Salvar no cache
+        this.saveToCache();
+
         const ipcaM1Display = document.getElementById('ipca-m1-display');
         const ipcaM2Display = document.getElementById('ipca-m2-display');
-        
+
         if (ipcaM1Display) ipcaM1Display.textContent = `${(ipcaM1*100).toFixed(2)}%`;
         if (ipcaM2Display) ipcaM2Display.textContent = `${(ipcaM2*100).toFixed(2)}%`;
     }
