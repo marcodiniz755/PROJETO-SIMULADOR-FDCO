@@ -4,7 +4,7 @@ class HistoricalDataService {
     constructor() {
         this.cacheKey = 'fdco_historical_tfd_cache';
         this.cacheDuration = 24 * 60 * 60 * 1000; // 24 horas
-        this.cacheVersion = 2; // Incrementar quando mudar lógica de cálculo
+        this.cacheVersion = 3; // Incrementar quando mudar lógica de cálculo
     }
 
     // Carregar dados históricos do cache
@@ -282,13 +282,13 @@ class HistoricalDataService {
                 // Depois do dia 10: primeiro=M-2 (agosto), segundo=M-1 (setembro)
                 const exp1 = monthParam.ndup / monthParam.ndmp;
                 const exp2 = monthParam.ndus / monthParam.ndms;
-                const termo1 = Math.pow(1 + ipcaM2, exp1);
-                const termo2 = Math.pow(1 + ipcaM1, exp2);
+                const termo1 = Math.pow(1 + ipcaM1, exp1);
+                const termo2 = Math.pow(1 + ipcaM2, exp2);
                 const fam = termo1 * termo2;
 
                 console.log(`  → exp1=${exp1.toFixed(6)}, exp2=${exp2.toFixed(6)}`);
-                console.log(`  → termo1=(1+${(ipcaM2*100).toFixed(4)}%)^${exp1.toFixed(4)}=${termo1.toFixed(9)}`);
-                console.log(`  → termo2=(1+${(ipcaM1*100).toFixed(4)}%)^${exp2.toFixed(4)}=${termo2.toFixed(9)}`);
+                console.log(`  → termo1=(1+${(ipcaM1*100).toFixed(4)}%)^${exp1.toFixed(4)}=${termo1.toFixed(9)}`);
+                console.log(`  → termo2=(1+${(ipcaM2*100).toFixed(4)}%)^${exp2.toFixed(4)}=${termo2.toFixed(9)}`);
                 console.log(`  → FAM = ${fam.toFixed(9)}`);
 
                 // Calcular TFD para cada tipo (A, B, C, D)
