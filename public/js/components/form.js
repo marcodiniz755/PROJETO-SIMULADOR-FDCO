@@ -556,53 +556,56 @@ class FormComponent {
 
     renderSectorOptions() {
         return `
-            <optgroup label="🏗️ INFRAESTRUTURA - SANEAMENTO (FP: A/C - até 20 anos)">
-                <option value="infraestrutura_saneamento_III">Saneamento Básico - Abastecimento de Água e Esgotamento Sanitário</option>
+            <optgroup label="💧 SANEAMENTO → Limite: 80% Prioritária | 70% Demais (FP: A/C - até 20 anos)">
+                <option value="infraestrutura_saneamento_III">Saneamento Básico - Abastecimento de Água e Esgotamento Sanitário [80%/70%]</option>
             </optgroup>
-            <optgroup label="🚛 INFRAESTRUTURA (FP: B/D - até 20 anos)">
-                <option value="infraestrutura_transportes_I">Transportes: Rodovias, Ferrovias, Hidrovias e Aeroportos</option>
-                <option value="infraestrutura_armazenagem_II">Armazenagem - Unidades Coletora, Intermediária e Terminal</option>
-                <option value="infraestrutura_residuos_IV">Usinas de Compostagem/Aterros Sanitários e Tratamento de Resíduos</option>
-                <option value="infraestrutura_gas_V">Produção e Distribuição de Gás e Gasoduto</option>
-                <option value="infraestrutura_petroleo_VI">Produção, Refino e Distribuição de Petróleo e Biocombustíveis</option>
-                <option value="infraestrutura_logistica_VII">Atividades de Logística - Armazenagem e Centros de Distribuição</option>
-                <option value="infraestrutura_telecomunicacoes_VIII">Telecomunicações</option>
-                <option value="infraestrutura_energia_X">Geração, Transmissão e Distribuição de Energia</option>
-                <option value="infraestrutura_urbana_XI">Infraestrutura Urbana - Centros Administrativos Públicos</option>
-                <option value="infraestrutura_portuaria_IX">Infraestrutura Portuária e Aeroportuária, Inclusive Portos Secos</option>
+
+            <optgroup label="🚛 INFRAESTRUTURA → Limite: 60% Prioritária | 50% Demais (FP: B/D - até 20 anos)">
+                <option value="infraestrutura_transportes_I">Transportes: Rodovias, Ferrovias, Hidrovias e Aeroportos [60%/50%]</option>
+                <option value="infraestrutura_armazenagem_II">Armazenagem - Unidades Coletora, Intermediária e Terminal [60%/50%]</option>
+                <option value="infraestrutura_residuos_IV">Usinas de Compostagem/Aterros Sanitários e Tratamento de Resíduos [60%/50%]</option>
+                <option value="infraestrutura_gas_V">Produção e Distribuição de Gás e Gasoduto [60%/50%]</option>
+                <option value="infraestrutura_petroleo_VI">Produção, Refino e Distribuição de Petróleo e Biocombustíveis [60%/50%]</option>
+                <option value="infraestrutura_logistica_VII">Atividades de Logística - Armazenagem e Centros de Distribuição [60%/50%]</option>
+                <option value="infraestrutura_telecomunicacoes_VIII">Telecomunicações [60%/50%]</option>
+                <option value="infraestrutura_energia_X">Geração, Transmissão e Distribuição de Energia [60%/50%]</option>
+                <option value="infraestrutura_urbana_XI">Infraestrutura Urbana - Centros Administrativos Públicos [60%/50%]</option>
+                <option value="infraestrutura_portuaria_IX">Infraestrutura Portuária e Aeroportuária, Inclusive Portos Secos [60%/50%]</option>
             </optgroup>
-            <optgroup label="🛳️ INFRAESTRUTURA ESTRUTURANTE (FP: B/D - até 20 anos)">
-                <option value="infraestrutura_estruturador">Estruturador</option>
+
+            <optgroup label="🛳️ ESTRUTURADOR → Limite: 55% Prioritária | 45% Demais (FP: B/D - até 20 anos)">
+                <option value="infraestrutura_estruturador">Estruturador [55%/45%]</option>
             </optgroup>
-            <optgroup label="🏛️ SERVIÇOS PÚBLICOS (FP: B/D - até 12 anos)">
-                <option value="servicos_publicos">Serviços Públicos</option>
+
+            <optgroup label="🏛️ SERVIÇOS PÚBLICOS → Limite: 60% Prioritária | 50% Demais (FP: B/D - até 12 anos)">
+                <option value="servicos_publicos">Serviços Públicos [60%/50%]</option>
+                <option value="servicos_turismo_I">Turismo - Empreendimentos Hoteleiros e Centros de Convenções [60%/50%]</option>
+                <option value="servicos_hospitalares_II">Serviços Hospitalares, Ambulatoriais e de Diagnósticos [60%/50%]</option>
+                <option value="servicos_transporte_passageiros_III">Transporte Regional de Passageiros [60%/50%]</option>
+                <option value="servicos_educacionais_IV">Empreendimentos Educacionais e Profissionalizantes [60%/50%]</option>
             </optgroup>
-            <optgroup label="🏨 SERVIÇOS (FP: B/D - até 12 anos)">
-                <option value="servicos_turismo_I">Turismo - Empreendimentos Hoteleiros e Centros de Convenções</option>
-                <option value="servicos_hospitalares_II">Serviços Hospitalares, Ambulatoriais e de Diagnósticos</option>
-                <option value="servicos_transporte_passageiros_III">Transporte Regional de Passageiros</option>
-                <option value="servicos_educacionais_IV">Empreendimentos Educacionais e Profissionalizantes</option>
+
+            <optgroup label="🌾 TRADICIONAIS → Limite: 50% Prioritária | 40% Demais (FP: B/D - até 12 anos)">
+                <option value="tradicionais_agricultura_I">Agricultura, Agronegócio, Fruticultura e Florestamento [50%/40%]</option>
+                <option value="tradicionais_veiculos_II">Cadeia Produtiva de Veículos Automotores [50%/40%]</option>
+                <option value="tradicionais_couros_III_a">Indústria - Couros, Peles, Calçados e Artefatos [50%/40%]</option>
+                <option value="tradicionais_plasticos_III_b">Indústria - Plásticos e Seus Derivados [50%/40%]</option>
+                <option value="tradicionais_latex_III_c">Indústria - Látex e Seus Derivados [50%/40%]</option>
+                <option value="tradicionais_textil_III_d">Indústria - Têxtil e Artigos de Vestuário [50%/40%]</option>
+                <option value="tradicionais_maquinas_III_e">Indústria - Máquinas, Ferramentas e Automação Industrial [50%/40%]</option>
+                <option value="tradicionais_minerais_III_f">Indústria - Minerais, Metalurgia, Siderurgia e Mecânica [50%/40%]</option>
+                <option value="tradicionais_quimicos_III_g">Indústria - Químicos e Petroquímicos [50%/40%]</option>
+                <option value="tradicionais_moveis_madeira_III_h">Indústria - Móveis e Artefatos de Madeira Sustentável [50%/40%]</option>
+                <option value="tradicionais_alimentos_III_i">Indústria - Alimentos, Carnes e Bebidas [50%/40%]</option>
+                <option value="tradicionais_papel_III_j">Indústria - Papel, Celulose e Madeira [50%/40%]</option>
+                <option value="tradicionais_farmaceuticos_III_k">Indústria - Farmacêuticos e Veterinários [50%/40%]</option>
+                <option value="tradicionais_produtos_higiene_III_l">Indústria - Produtos de Higiene, Perfumaria e Cosméticos [50%/40%]</option>
             </optgroup>
-            <optgroup label="🌾 TRADICIONAIS (FP: B/D - até 12 anos)">
-                <option value="tradicionais_agricultura_I">Agricultura, Agronegócio, Fruticultura e Florestamento</option>
-                <option value="tradicionais_veiculos_II">Cadeia Produtiva de Veículos Automotores</option>
-                <option value="tradicionais_couros_III_a">Indústria - Couros, Peles, Calçados e Artefatos</option>
-                <option value="tradicionais_plasticos_III_b">Indústria - Plásticos e Seus Derivados</option>
-                <option value="tradicionais_latex_III_c">Indústria - Látex e Seus Derivados</option>
-                <option value="tradicionais_textil_III_d">Indústria - Têxtil e Artigos de Vestuário</option>
-                <option value="tradicionais_maquinas_III_e">Indústria - Máquinas, Ferramentas e Automação Industrial</option>
-                <option value="tradicionais_minerais_III_f">Indústria - Minerais, Metalurgia, Siderurgia e Mecânica</option>
-                <option value="tradicionais_quimicos_III_g">Indústria - Químicos e Petroquímicos</option>
-                <option value="tradicionais_moveis_madeira_III_h">Indústria - Móveis e Artefatos de Madeira Sustentável</option>
-                <option value="tradicionais_alimentos_III_i">Indústria - Alimentos, Carnes e Bebidas</option>
-                <option value="tradicionais_papel_III_j">Indústria - Papel, Celulose e Madeira</option>
-                <option value="tradicionais_farmaceuticos_III_k">Indústria - Farmacêuticos e Veterinários</option>
-                <option value="tradicionais_produtos_higiene_III_l">Indústria - Produtos de Higiene, Perfumaria e Cosméticos</option>
-            </optgroup>
-            <optgroup label="🔬 CIÊNCIA, TECNOLOGIA E INOVAÇÃO (FP: B/D - até 12 anos)">
-                <option value="cti_pesquisa_I">Pesquisa, Desenvolvimento e Inovação</option>
-                <option value="cti_desenvolvimento_II">Desenvolvimento de Software e Aplicativos</option>
-                <option value="cti_inovacao_III">Inovação e Empreendedorismo Tecnológico</option>
+
+            <optgroup label="🔬 CIÊNCIA, TECNOLOGIA E INOVAÇÃO → Limite: 50% Prioritária | 40% Demais (FP: B/D - até 12 anos)">
+                <option value="cti_pesquisa_I">Pesquisa, Desenvolvimento e Inovação [50%/40%]</option>
+                <option value="cti_desenvolvimento_II">Desenvolvimento de Software e Aplicativos [50%/40%]</option>
+                <option value="cti_inovacao_III">Inovação e Empreendedorismo Tecnológico [50%/40%]</option>
             </optgroup>
         `;
     }
@@ -633,13 +636,17 @@ class FormComponent {
                         <input type="text" id="fixedInvestment" placeholder="0,00" data-type="currency">
                     </div>
                     <div id="fixedInvestmentHint" style="margin-top: 8px; font-size: 0.8rem; line-height: 1.3;"></div>
+                    <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                        <strong style="color: #856404;">⚠️ Importante:</strong>
+                        <span style="color: #856404; font-size: 0.85rem;"> FDCO NÃO FINANCIA INVESTIMENTO CIRCULANTE (CAPITAL DE GIRO)!</span>
+                    </div>
                 </div>
-                
+
                 <div class="form-group required">
                     <label for="ownResources">
                         <span class="icon-fallback">💼</span> Recursos Próprios (%)
                     </label>
-                    <input type="number" id="ownResources" value="20" min="20" max="80" step="0.1" data-type="percentage" data-min="20" data-max="80">
+                    <input type="number" id="ownResources" value="20" min="20" max="100" step="1" data-type="percentage" data-min="20" data-max="100">
                     <div id="ownResourcesHint" style="margin-top: 8px; font-size: 0.8rem; line-height: 1.3;"></div>
                 </div>
             </div>
@@ -749,7 +756,7 @@ class FormComponent {
 
         // Configurar input de percentual
         const ownResourcesInput = document.getElementById('ownResources');
-        formatterService.setupPercentageInput(ownResourcesInput, 20, 80);
+        formatterService.setupPercentageInput(ownResourcesInput, 20, 100);
 
         // Grace period é um select, não precisa de configuração especial
     }

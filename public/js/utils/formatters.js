@@ -137,19 +137,29 @@ class FormatterService {
 
     // Configurar entrada de percentual
     setupPercentageInput(inputElement, min = 0, max = 100) {
+        // Permitir digitação livre
         inputElement.addEventListener('input', (e) => {
-            let value = parseFloat(e.target.value) || 0;
-            
-            if (value < min) value = min;
-            if (value > max) value = max;
-            
+            // Apenas remove caracteres não numéricos, mas permite digitar
+            let value = e.target.value.replace(/[^\d.]/g, '');
             e.target.value = value;
-            
-            setTimeout(() => {
-                if (window.triggerValidations) {
-                    window.triggerValidations();
-                }
-            }, 10);
+        });
+
+        // Aplicar limites apenas quando o campo perde o foco
+        inputElement.addEventListener('blur', (e) => {
+            let value = parseFloat(e.target.value);
+
+            if (isNaN(value) || value < min) {
+                value = min;
+            }
+            if (value > max) {
+                value = max;
+            }
+
+            e.target.value = value;
+
+            if (window.triggerValidations) {
+                window.triggerValidations();
+            }
         });
     }
 

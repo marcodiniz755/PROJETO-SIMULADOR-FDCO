@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Simulador FDCO Mobile - Fundo de Desenvolvimento do Centro-Oeste">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Simulador FDCO Mobile v2.2.1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.required label::after {
+            content: ' *';
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+        }
+
+        .input-prefix {
+            background: #e9ecef;
+            padding: 14px 12px;
+            border: 2px solid #e9ecef;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .input-group input {
+            border-radius: 0 8px 8px 0;
+            border-left: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:active {
+            background: #7f8c8d;
+            transform: scale(0.98);
+        }
+
+        .hint {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .results-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border-top: 4px solid #27ae60;
+        }
+
+        .result-card-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .result-highlight {
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .result-value-large {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #27ae60;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 0.9rem;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item-label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .result-item-value {
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        .schedule-table {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .grace-period {
+            background: #fff3cd !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        #results {
+            display: none;
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 1.2rem;
+            }
+
+            .result-value-large {
+                font-size: 1.8rem;
+            }
+
+            th, td {
+                padding: 8px 4px;
+                font-size: 0.75rem;
+            }
+        }
+
+        .params-collapsible {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .params-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .params-content.expanded {
+            max-height: 800px;
+        }
+
+        .params-grid {
+            display: grid;
+            gap: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .param-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #3498db;
+        }
+
+        .param-label {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .param-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🧮 Simulador FDCO Mobile</h1>
+            <p>v2.2.1 - Fundo de Desenvolvimento do Centro-Oeste</p>
+        </div>
+
+        <!-- Parameters Collapsible -->
+        <div class="params-collapsible" onclick="toggleParams()">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 600;">📊 Parâmetros TFD</span>
+                <span id="paramsToggle">▼</span>
+            </div>
+        </div>
+        <div class="params-content" id="paramsContent">
+            <div class="params-grid">
+                <div class="param-item">
+                    <span class="param-label">TLP (a.a.)</span>
+                    <span class="param-value" id="param-tlp">7.70%</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">IPCA M-1</span>
+                    <span class="param-value" id="param-ipca-m1">0.24%</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">IPCA M-2</span>
+                    <span class="param-value" id="param-ipca-m2">0.26%</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">Dias Úteis (DU)</span>
+                    <span class="param-value" id="param-du">21</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">NDUP</span>
+                    <span class="param-value" id="param-ndup">10</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">NDUS</span>
+                    <span class="param-value" id="param-ndus">11</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card">
+            <div class="card-title">📋 Dados do Projeto</div>
+
+            <div class="form-group required">
+                <label for="state">Estado</label>
+                <select id="state" onchange="updateMunicipalities()">
+                    <option value="">Selecione</option>
+                    <option value="MS">Mato Grosso do Sul</option>
+                </select>
+            </div>
+
+            <div class="form-group required">
+                <label for="municipality">Município</label>
+                <select id="municipality">
+                    <option value="">Selecione o estado primeiro</option>
+                </select>
+            </div>
+
+            <div class="form-group required">
+                <label for="projectSector">Setor do Projeto</label>
+                <select id="projectSector">
+                    <option value="">Selecione</option>
+                    <optgroup label="💧 SANEAMENTO [80%/70%]">
+                        <option value="infraestrutura_saneamento_III">Saneamento Básico</option>
+                    </optgroup>
+                    <optgroup label="🚛 INFRAESTRUTURA [60%/50%]">
+                        <option value="infraestrutura_transportes_I">Transportes</option>
+                        <option value="infraestrutura_energia_X">Energia</option>
+                    </optgroup>
+                    <optgroup label="🏛️ SERVIÇOS [60%/50%]">
+                        <option value="servicos_hospitalares_II">Serviços Hospitalares</option>
+                        <option value="servicos_turismo_I">Turismo</option>
+                    </optgroup>
+                    <optgroup label="🌾 TRADICIONAIS [50%/40%]">
+                        <option value="tradicionais_agricultura_I">Agricultura</option>
+                        <option value="tradicionais_alimentos_III_i">Alimentos</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="form-group required">
+                <label for="totalInvestment">Investimento Total</label>
+                <div class="input-group">
+                    <span class="input-prefix">R$</span>
+                    <input type="text" id="totalInvestment" placeholder="0,00">
+                </div>
+                <div id="totalHint" class="hint"></div>
+            </div>
+
+            <div class="form-group required">
+                <label for="fixedInvestment">Investimento Fixo</label>
+                <div class="input-group">
+                    <span class="input-prefix">R$</span>
+                    <input type="text" id="fixedInvestment" placeholder="0,00">
+                </div>
+                <div class="alert-warning" style="margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 0.85rem;">
+                    <strong>⚠️</strong> FDCO NÃO FINANCIA CAPITAL DE GIRO!
+                </div>
+            </div>
+
+            <div class="form-group required">
+                <label for="ownResources">Recursos Próprios (%)</label>
+                <input type="number" id="ownResources" value="20" min="20" max="100">
+                <div id="ownHint" class="hint"></div>
+            </div>
+
+            <div class="form-group required">
+                <label for="loanTerm">Prazo Total</label>
+                <select id="loanTerm">
+                    <option value="">Selecione</option>
+                    <option value="5">5 anos</option>
+                    <option value="8">8 anos</option>
+                    <option value="10">10 anos</option>
+                    <option value="12">12 anos</option>
+                    <option value="15">15 anos</option>
+                    <option value="20">20 anos</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="gracePeriod">Carência</label>
+                <select id="gracePeriod">
+                    <option value="0">Sem carência</option>
+                    <option value="0.5">6 meses</option>
+                    <option value="1">1 ano</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary" onclick="calculate()">
+                🧮 Calcular FDCO
+            </button>
+            <button class="btn btn-secondary" onclick="clearForm()">
+                🗑️ Limpar
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div id="placeholder" class="card placeholder">
+            <div class="placeholder-icon">📊</div>
+            <h3>Simulação FDCO</h3>
+            <p>Preencha o formulário acima para calcular</p>
+        </div>
+
+        <div id="results">
+            <div class="alert alert-warning">
+                <div>
+                    <strong>📚 SIMULADOR EDUCACIONAL</strong><br>
+                    Este simulador tem fins educacionais. Os valores das parcelas SAC são estimativas. Para consultas oficiais, acesse: <a href="https://www.gov.br/sudeco" target="_blank" style="color: #0066cc;">www.gov.br/sudeco</a>
+                </div>
+            </div>
+
+            <div id="approvalStatus"></div>
+
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-card-title">💰 Financiamento FDCO</div>
+                    <div class="result-highlight">
+                        <span class="result-value-large" id="fdcoAmount">R$ 0,00</span>
+                        <span class="result-label">Valor do Financiamento</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">Taxa TFD (anual)</span>
+                        <span class="result-item-value" id="tfdRate">0,00%</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">Fator de Programa</span>
+                        <span class="result-item-value" id="fpValue">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">% do Projeto FDCO</span>
+                        <span class="result-item-value" id="fdcoPerc">0%</span>
+                    </div>
+                </div>
+
+                <div class="result-card" style="border-top-color: #3498db;">
+                    <div class="result-card-title">📈 Detalhes</div>
+                    <div class="result-item">
+                        <span class="result-item-label">Recursos Próprios</span>
+                        <span class="result-item-value" id="ownAmount">R$ 0,00</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">Amortização SAC</span>
+                        <span class="result-item-value" id="sacAmount">R$ 0,00</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">1ª Prestação</span>
+                        <span class="result-item-value" id="firstPayment">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 15px;">
+                <div class="card-title">📋 Cronograma SAC</div>
+                <div class="schedule-table" id="scheduleContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// ==================== DATA ====================
+const MS_MUNICIPALITIES = [
+    { name: 'ÁGUA CLARA', prioridade: 'DEMAIS' },
+    { name: 'ALCINÓPOLIS', prioridade: 'DEMAIS' },
+    { name: 'AMAMBAI', prioridade: 'PRIORITÁRIA' },
+    { name: 'ANASTÁCIO', prioridade: 'PRIORITÁRIA' },
+    { name: 'ANAURILÂNDIA', prioridade: 'PRIORITÁRIA' },
+    { name: 'ANGÉLICA', prioridade: 'PRIORITÁRIA' },
+    { name: 'ANTÔNIO JOÃO', prioridade: 'PRIORITÁRIA' },
+    { name: 'APARECIDA DO TABOADO', prioridade: 'DEMAIS' },
+    { name: 'AQUIDAUANA', prioridade: 'PRIORITÁRIA' },
+    { name: 'ARAL MOREIRA', prioridade: 'PRIORITÁRIA' },
+    { name: 'BANDEIRANTES', prioridade: 'DEMAIS' },
+    { name: 'BATAGUASSU', prioridade: 'PRIORITÁRIA' },
+    { name: 'BATAYPORÃ', prioridade: 'PRIORITÁRIA' },
+    { name: 'BELA VISTA', prioridade: 'PRIORITÁRIA' },
+    { name: 'BODOQUENA', prioridade: 'PRIORITÁRIA' },
+    { name: 'BONITO', prioridade: 'PRIORITÁRIA' },
+    { name: 'BRASILÂNDIA', prioridade: 'DEMAIS' },
+    { name: 'CAARAPÓ', prioridade: 'PRIORITÁRIA' },
+    { name: 'CAMAPUÃ', prioridade: 'DEMAIS' },
+    { name: 'CAMPO GRANDE', prioridade: 'DEMAIS' },
+    { name: 'CARACOL', prioridade: 'PRIORITÁRIA' },
+    { name: 'CASSILÂNDIA', prioridade: 'DEMAIS' },
+    { name: 'CHAPADÃO DO SUL', prioridade: 'DEMAIS' },
+    { name: 'CORGUINHO', prioridade: 'DEMAIS' },
+    { name: 'CORONEL SAPUCAIA', prioridade: 'PRIORITÁRIA' },
+    { name: 'CORUMBÁ', prioridade: 'PRIORITÁRIA' },
+    { name: 'COSTA RICA', prioridade: 'DEMAIS' },
+    { name: 'COXIM', prioridade: 'DEMAIS' },
+    { name: 'DEODÁPOLIS', prioridade: 'PRIORITÁRIA' },
+    { name: 'DOIS IRMÃOS DO BURITI', prioridade: 'PRIORITÁRIA' },
+    { name: 'DOURADINA', prioridade: 'PRIORITÁRIA' },
+    { name: 'DOURADOS', prioridade: 'PRIORITÁRIA' },
+    { name: 'ELDORADO', prioridade: 'PRIORITÁRIA' },
+    { name: 'FÁTIMA DO SUL', prioridade: 'PRIORITÁRIA' },
+    { name: 'FIGUEIRÃO', prioridade: 'DEMAIS' },
+    { name: 'GLÓRIA DE DOURADOS', prioridade: 'PRIORITÁRIA' },
+    { name: 'GUIA LOPES DA LAGUNA', prioridade: 'PRIORITÁRIA' },
+    { name: 'IGUATEMI', prioridade: 'PRIORITÁRIA' },
+    { name: 'INOCÊNCIA', prioridade: 'DEMAIS' },
+    { name: 'ITAPORÃ', prioridade: 'PRIORITÁRIA' },
+    { name: 'ITAQUIRAÍ', prioridade: 'PRIORITÁRIA' },
+    { name: 'IVINHEMA', prioridade: 'PRIORITÁRIA' },
+    { name: 'JAPORÃ', prioridade: 'PRIORITÁRIA' },
+    { name: 'JARAGUARI', prioridade: 'DEMAIS' },
+    { name: 'JARDIM', prioridade: 'PRIORITÁRIA' },
+    { name: 'JATEÍ', prioridade: 'PRIORITÁRIA' },
+    { name: 'JUTI', prioridade: 'PRIORITÁRIA' },
+    { name: 'LADÁRIO', prioridade: 'PRIORITÁRIA' },
+    { name: 'LAGUNA CARAPÃ', prioridade: 'PRIORITÁRIA' },
+    { name: 'MARACAJU', prioridade: 'PRIORITÁRIA' },
+    { name: 'MIRANDA', prioridade: 'PRIORITÁRIA' },
+    { name: 'MUNDO NOVO', prioridade: 'PRIORITÁRIA' },
+    { name: 'NAVIRAÍ', prioridade: 'PRIORITÁRIA' },
+    { name: 'NIOAQUE', prioridade: 'PRIORITÁRIA' },
+    { name: 'NOVA ALVORADA DO SUL', prioridade: 'PRIORITÁRIA' },
+    { name: 'NOVA ANDRADINA', prioridade: 'PRIORITÁRIA' },
+    { name: 'NOVO HORIZONTE DO SUL', prioridade: 'PRIORITÁRIA' },
+    { name: 'PARAÍSO DAS ÁGUAS', prioridade: 'DEMAIS' },
+    { name: 'PARANAÍBA', prioridade: 'DEMAIS' },
+    { name: 'PARANHOS', prioridade: 'PRIORITÁRIA' },
+    { name: 'PEDRO GOMES', prioridade: 'DEMAIS' },
+    { name: 'PONTA PORÃ', prioridade: 'PRIORITÁRIA' },
+    { name: 'PORTO MURTINHO', prioridade: 'PRIORITÁRIA' },
+    { name: 'RIBAS DO RIO PARDO', prioridade: 'DEMAIS' },
+    { name: 'RIO BRILHANTE', prioridade: 'PRIORITÁRIA' },
+    { name: 'RIO NEGRO', prioridade: 'DEMAIS' },
+    { name: 'RIO VERDE DE MATO GROSSO', prioridade: 'DEMAIS' },
+    { name: 'ROCHEDO', prioridade: 'DEMAIS' },
+    { name: 'SANTA RITA DO PARDO', prioridade: 'DEMAIS' },
+    { name: 'SÃO GABRIEL DO OESTE', prioridade: 'DEMAIS' },
+    { name: 'SELVÍRIA', prioridade: 'DEMAIS' },
+    { name: 'SETE QUEDAS', prioridade: 'PRIORITÁRIA' },
+    { name: 'SIDROLÂNDIA', prioridade: 'PRIORITÁRIA' },
+    { name: 'SONORA', prioridade: 'DEMAIS' },
+    { name: 'TACURU', prioridade: 'PRIORITÁRIA' },
+    { name: 'TAQUARUSSU', prioridade: 'PRIORITÁRIA' },
+    { name: 'TERENOS', prioridade: 'DEMAIS' },
+    { name: 'TRÊS LAGOAS', prioridade: 'PRIORITÁRIA' },
+    { name: 'VICENTINA', prioridade: 'PRIORITÁRIA' }
+];
+
+const SECTOR_LIMITS = {
+    'infraestrutura_saneamento_III': { prioritaria: 80, demais: 70 },
+    'infraestrutura_transportes_I': { prioritaria: 60, demais: 50 },
+    'infraestrutura_energia_X': { prioritaria: 60, demais: 50 },
+    'servicos_hospitalares_II': { prioritaria: 60, demais: 50 },
+    'servicos_turismo_I': { prioritaria: 60, demais: 50 },
+    'tradicionais_agricultura_I': { prioritaria: 50, demais: 40 },
+    'tradicionais_alimentos_III_i': { prioritaria: 50, demais: 40 }
+};
+
+const FP_VALUES = {
+    'A': 0.85,  // Saneamento PRIORITÁRIA
+    'B': 1.05,  // Demais PRIORITÁRIA
+    'C': 1.25,  // Saneamento DEMAIS
+    'D': 1.45   // Demais DEMAIS
+};
+
+// ==================== STATE ====================
+let tfdParams = {
+    jm: 7.70,
+    alpha: 1.00,
+    cdr: 1.00,
+    du: 21,
+    ipca_m1: 0.0024,
+    ipca_m2: 0.0026,
+    ndup: 10,
+    ndus: 11,
+    ndmp: 21,
+    ndms: 21
+};
+
+// ==================== UTILITY FUNCTIONS ====================
+function formatCurrency(value) {
+    if (!value || value === 0) return 'R$ 0,00';
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(value);
+}
+
+function formatCurrencyInput(digits) {
+    if (!digits || digits === '0' || digits === '00') return '';
+
+    digits = digits.toString().replace(/\D/g, '');
+    if (!digits) return '';
+
+    while (digits.length < 3) {
+        digits = '0' + digits;
+    }
+
+    let centavos = digits.slice(-2);
+    let reais = digits.slice(0, -2);
+
+    if (!reais || reais === '0') {
+        reais = '0';
+    } else {
+        reais = reais.replace(/^0+/, '') || '0';
+        reais = reais.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    return reais + ',' + centavos;
+}
+
+function parseInputValue(inputValue) {
+    if (!inputValue) return 0;
+    let digits = inputValue.replace(/\D/g, '');
+    if (!digits) return 0;
+
+    while (digits.length < 3) {
+        digits = '0' + digits;
+    }
+
+    return parseInt(digits, 10) / 100;
+}
+
+function setupCurrencyInput(inputId) {
+    const input = document.getElementById(inputId);
+    let isUpdating = false;
+
+    input.addEventListener('input', (e) => {
+        if (isUpdating) return;
+
+        isUpdating = true;
+        let digits = e.target.value.replace(/\D/g, '');
+
+        if (digits.length > 12) {
+            digits = digits.substring(0, 12);
+        }
+
+        if (digits) {
+            e.target.value = formatCurrencyInput(digits);
+        } else {
+            e.target.value = '';
+        }
+
+        isUpdating = false;
+    });
+
+    input.addEventListener('blur', () => {
+        if (!input.value || input.value.replace(/\D/g, '') === '') {
+            input.value = '0,00';
+        }
+    });
+}
+
+// ==================== CALCULATION FUNCTIONS ====================
+function calculateFAM() {
+    const { ipca_m1, ipca_m2, ndup, ndus, ndmp, ndms } = tfdParams;
+    const termo1 = Math.pow(1 + ipca_m2, ndup / ndmp);
+    const termo2 = Math.pow(1 + ipca_m1, ndus / ndms);
+    const fam = termo1 * termo2;
+    return parseFloat(fam.toFixed(9));
+}
+
+function calculateTFD(fp) {
+    const { jm, alpha, cdr, du } = tfdParams;
+    const jurosPrefixadosTLP = (alpha * jm) / 100;
+    const fam = calculateFAM();
+    const termo1 = cdr * fp * jurosPrefixadosTLP;
+    const termo2 = 1 + termo1;
+    const expoente = du / 252;
+    const termo3 = Math.pow(termo2, expoente);
+    const tfd_mensal = fam * termo3 - 1;
+    const tfd_anual = Math.pow(1 + tfd_mensal, 12) - 1;
+
+    return tfd_anual * 100;
+}
+
+function getFatorPrograma(sector, isPrioritaria) {
+    if (sector === 'infraestrutura_saneamento_III') {
+        return isPrioritaria ? 'A' : 'C';
+    }
+    return isPrioritaria ? 'B' : 'D';
+}
+
+function calculateLimits(totalInvestment, fixedInvestment, projectSector, isPrioritaria, ownResourcesPerc) {
+    const location = isPrioritaria ? 'prioritaria' : 'demais';
+    const sectorLimitPerc = SECTOR_LIMITS[projectSector][location];
+
+    const maxBySector = totalInvestment * (sectorLimitPerc / 100);
+    const maxByFixedRule = fixedInvestment * 0.9;
+    const maxByFinanciable = totalInvestment * 0.8;
+    const maxByOwnResources = totalInvestment * (1 - ownResourcesPerc / 100);
+
+    let fdcoAmount = Math.min(maxBySector, maxByFixedRule, maxByFinanciable, maxByOwnResources);
+    fdcoAmount = Math.max(0, fdcoAmount);
+
+    return {
+        fdcoAmount,
+        maxBySector,
+        maxByFixedRule,
+        maxByFinanciable,
+        sectorLimitPerc
+    };
+}
+
+function generateSACSchedule(principal, semestralRate, totalYears, gracePeriod) {
+    const schedule = [];
+    const startDate = new Date();
+    let currentDate = new Date(startDate);
+    let balance = principal;
+    const amortizationPeriods = (totalYears - gracePeriod) * 2;
+    const sacAmortization = amortizationPeriods > 0 ? principal / amortizationPeriods : 0;
+
+    // Grace period
+    for (let i = 1; i <= gracePeriod * 2; i++) {
+        currentDate.setMonth(currentDate.getMonth() + 6);
+        const interest = balance * semestralRate;
+        balance += interest;
+
+        schedule.push({
+            payment: i,
+            date: new Date(currentDate).toLocaleDateString('pt-BR'),
+            principal: 0,
+            interest: interest,
+            total: interest,
+            balance: balance,
+            type: 'Carência'
+        });
+    }
+
+    // Amortization period
+    balance = principal + (gracePeriod * 2 * principal * semestralRate);
+    for (let i = 1; i <= amortizationPeriods; i++) {
+        currentDate.setMonth(currentDate.getMonth() + 6);
+        const interest = balance * semestralRate;
+        const totalPayment = sacAmortization + interest;
+        balance -= sacAmortization;
+
+        schedule.push({
+            payment: (gracePeriod * 2) + i,
+            date: new Date(currentDate).toLocaleDateString('pt-BR'),
+            principal: sacAmortization,
+            interest: interest,
+            total: totalPayment,
+            balance: Math.max(0, balance),
+            type: 'SAC'
+        });
+    }
+
+    return schedule;
+}
+
+// ==================== UI FUNCTIONS ====================
+function updateMunicipalities() {
+    const state = document.getElementById('state').value;
+    const select = document.getElementById('municipality');
+
+    select.innerHTML = '<option value="">Selecione o município</option>';
+
+    if (state === 'MS') {
+        MS_MUNICIPALITIES.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city.name;
+            option.textContent = `${city.name} (${city.prioridade})`;
+            select.appendChild(option);
+        });
+    }
+}
+
+function toggleParams() {
+    const content = document.getElementById('paramsContent');
+    const toggle = document.getElementById('paramsToggle');
+
+    if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        toggle.textContent = '▼';
+    } else {
+        content.classList.add('expanded');
+        toggle.textContent = '▲';
+    }
+}
+
+function updateParameterDisplays() {
+    document.getElementById('param-tlp').textContent = tfdParams.jm.toFixed(2) + '%';
+    document.getElementById('param-ipca-m1').textContent = (tfdParams.ipca_m1 * 100).toFixed(2) + '%';
+    document.getElementById('param-ipca-m2').textContent = (tfdParams.ipca_m2 * 100).toFixed(2) + '%';
+    document.getElementById('param-du').textContent = tfdParams.du;
+    document.getElementById('param-ndup').textContent = tfdParams.ndup;
+    document.getElementById('param-ndus').textContent = tfdParams.ndus;
+}
+
+function showAlert(type, message) {
+    const statusDiv = document.getElementById('approvalStatus');
+    statusDiv.className = 'alert alert-' + type;
+    statusDiv.innerHTML = message;
+    statusDiv.style.display = 'block';
+}
+
+function displaySchedule(schedule) {
+    const container = document.getElementById('scheduleContainer');
+
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Amort.</th>
+                    <th>Juros</th>
+                    <th>Total</th>
+                    <th>Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    schedule.forEach(payment => {
+        const rowClass = payment.type === 'Carência' ? 'grace-period' : '';
+        html += `
+            <tr class="${rowClass}">
+                <td style="text-align: center; font-weight: 600;">${payment.payment}</td>
+                <td style="text-align: center; font-size: 0.75rem;">${payment.date}</td>
+                <td style="text-align: center; font-size: 0.75rem;">${payment.type}</td>
+                <td style="text-align: right;">${formatCurrency(payment.principal)}</td>
+                <td style="text-align: right;">${formatCurrency(payment.interest)}</td>
+                <td style="text-align: right; font-weight: 600;">${formatCurrency(payment.total)}</td>
+                <td style="text-align: right;">${formatCurrency(payment.balance)}</td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+
+    const totalJuros = schedule.reduce((sum, p) => sum + p.interest, 0);
+    const totalGeral = schedule.reduce((sum, p) => sum + p.total, 0);
+
+    html += `
+        <div style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; font-size: 0.85rem;">
+            <div><strong>Total de Parcelas:</strong> ${schedule.length}</div>
+            <div><strong>Total de Juros:</strong> ${formatCurrency(totalJuros)}</div>
+            <div><strong>Total Geral:</strong> ${formatCurrency(totalGeral)}</div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+// ==================== MAIN CALCULATION ====================
+function calculate() {
+    // Get values
+    const state = document.getElementById('state').value;
+    const municipality = document.getElementById('municipality').value;
+    const projectSector = document.getElementById('projectSector').value;
+    const totalInvestment = parseInputValue(document.getElementById('totalInvestment').value);
+    const fixedInvestment = parseInputValue(document.getElementById('fixedInvestment').value);
+    const ownResourcesPerc = parseFloat(document.getElementById('ownResources').value) || 20;
+    const loanTerm = parseInt(document.getElementById('loanTerm').value) || 0;
+    const gracePeriod = parseFloat(document.getElementById('gracePeriod').value) || 0;
+
+    // Validate
+    if (!state || !municipality || !projectSector || !totalInvestment || !fixedInvestment || !loanTerm) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return;
+    }
+
+    // Check minimum investment
+    const municipalityInfo = MS_MUNICIPALITIES.find(m => m.name === municipality);
+    const isPrioritaria = municipalityInfo.prioridade === 'PRIORITÁRIA';
+
+    let minimoInvestimento = isPrioritaria ? 15000000 : 20000000;
+    if (projectSector === 'servicos_hospitalares_II') {
+        minimoInvestimento = 15000000;
+    }
+
+    if (totalInvestment < minimoInvestimento) {
+        alert(`Investimento mínimo: ${formatCurrency(minimoInvestimento)}`);
+        return;
+    }
+
+    // Calculate
+    const limits = calculateLimits(totalInvestment, fixedInvestment, projectSector, isPrioritaria, ownResourcesPerc);
+    const priority = getFatorPrograma(projectSector, isPrioritaria);
+    const fp = FP_VALUES[priority];
+    const tfdRate = calculateTFD(fp);
+
+    const fdcoAmount = limits.fdcoAmount;
+    const fdcoPercentage = totalInvestment > 0 ? (fdcoAmount / totalInvestment) * 100 : 0;
+    const ownResourcesAmount = totalInvestment - fdcoAmount;
+
+    const semestralRate = tfdRate / 100 / 2;
+    const amortizationPeriods = (loanTerm - gracePeriod) * 2;
+    let sacAmortization = 0;
+    let firstPayment = 0;
+
+    if (amortizationPeriods > 0 && fdcoAmount > 0) {
+        sacAmortization = fdcoAmount / amortizationPeriods;
+        const initialInterest = fdcoAmount * semestralRate;
+        firstPayment = sacAmortization + initialInterest;
+    }
+
+    const schedule = generateSACSchedule(fdcoAmount, semestralRate, loanTerm, gracePeriod);
+
+    // Update UI
+    document.getElementById('fdcoAmount').textContent = formatCurrency(fdcoAmount);
+    document.getElementById('tfdRate').textContent = tfdRate.toFixed(2) + '% a.a.';
+    document.getElementById('fpValue').textContent = `${priority} (${fp.toFixed(2)})`;
+    document.getElementById('fdcoPerc').textContent = fdcoPercentage.toFixed(1) + '%';
+    document.getElementById('ownAmount').textContent = formatCurrency(ownResourcesAmount);
+    document.getElementById('sacAmount').textContent = formatCurrency(sacAmortization);
+    document.getElementById('firstPayment').textContent = formatCurrency(firstPayment);
+
+    // Show approval status
+    const needsApproval = fdcoAmount > 50000000;
+    if (needsApproval) {
+        showAlert('warning', `<strong>⚠️ DELIBERAÇÃO DIRETORIA COLEGIADA NECESSÁRIA!</strong><br>O valor (${formatCurrency(fdcoAmount)}) supera R$ 50 milhões.`);
+    } else {
+        showAlert('success', `<strong>✅ APROVAÇÃO AUTOMÁTICA</strong><br>O valor (${formatCurrency(fdcoAmount)}) está dentro do limite de R$ 50 milhões.`);
+    }
+
+    displaySchedule(schedule);
+
+    // Show results
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+
+    // Scroll to results
+    setTimeout(() => {
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+}
+
+function clearForm() {
+    document.getElementById('state').value = '';
+    document.getElementById('municipality').innerHTML = '<option value="">Selecione o estado primeiro</option>';
+    document.getElementById('projectSector').value = '';
+    document.getElementById('totalInvestment').value = '0,00';
+    document.getElementById('fixedInvestment').value = '0,00';
+    document.getElementById('ownResources').value = '20';
+    document.getElementById('loanTerm').value = '';
+    document.getElementById('gracePeriod').value = '0';
+
+    document.getElementById('totalHint').innerHTML = '';
+    document.getElementById('ownHint').innerHTML = '';
+
+    document.getElementById('placeholder').style.display = 'block';
+    document.getElementById('results').style.display = 'none';
+}
+
+// ==================== API FUNCTIONS ====================
+async function fetchTLP() {
+    try {
+        const response = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.27572/dados?formato=json');
+        if (!response.ok) throw new Error('Erro ao buscar TLP');
+
+        const data = await response.json();
+        if (data && data.length > 0) {
+            const ultimoRegistro = data[data.length - 1];
+            tfdParams.jm = parseFloat(ultimoRegistro.valor);
+            updateParameterDisplays();
+
+            // Save to localStorage
+            localStorage.setItem('fdco_tlp', JSON.stringify({
+                value: tfdParams.jm,
+                date: new Date().toISOString()
+            }));
+
+            return true;
+        }
+    } catch (error) {
+        console.error('Erro ao buscar TLP:', error);
+
+        // Try to load from cache
+        const cached = localStorage.getItem('fdco_tlp');
+        if (cached) {
+            const data = JSON.parse(cached);
+            tfdParams.jm = data.value;
+            updateParameterDisplays();
+        }
+
+        return false;
+    }
+}
+
+async function fetchIPCA() {
+    try {
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-3/variaveis/63?localidades=N1[all]');
+        if (!response.ok) throw new Error('Erro ao buscar IPCA');
+
+        const data = await response.json();
+
+        if (data && data[0] && data[0].resultados && data[0].resultados[0] && data[0].resultados[0].series) {
+            const series = data[0].resultados[0].series[0].serie;
+            const allPeriods = Object.keys(series);
+
+            const hoje = new Date();
+            const diaAtual = hoje.getDate();
+            const antesDoIPCA = diaAtual < 10;
+
+            const periods = allPeriods.slice(-2);
+            const periodM2 = periods[0];
+            const periodM1 = periods[1];
+            const ipcaM2 = parseFloat(series[periodM2]) / 100;
+            const ipcaM1 = parseFloat(series[periodM1]) / 100;
+
+            tfdParams.ipca_m1 = ipcaM1;
+            tfdParams.ipca_m2 = ipcaM2;
+            updateParameterDisplays();
+
+            // Save to localStorage
+            localStorage.setItem('fdco_ipca', JSON.stringify({
+                m1: ipcaM1,
+                m2: ipcaM2,
+                date: new Date().toISOString()
+            }));
+
+            return true;
+        }
+    } catch (error) {
+        console.error('Erro ao buscar IPCA:', error);
+
+        // Try to load from cache
+        const cached = localStorage.getItem('fdco_ipca');
+        if (cached) {
+            const data = JSON.parse(cached);
+            tfdParams.ipca_m1 = data.m1;
+            tfdParams.ipca_m2 = data.m2;
+            updateParameterDisplays();
+        }
+
+        return false;
+    }
+}
+
+// ==================== INITIALIZATION ====================
+window.addEventListener('DOMContentLoaded', () => {
+    // Setup currency inputs
+    setupCurrencyInput('totalInvestment');
+    setupCurrencyInput('fixedInvestment');
+
+    // Set default values
+    document.getElementById('totalInvestment').value = '20.000.000,00';
+    document.getElementById('fixedInvestment').value = '16.000.000,00';
+
+    // Update displays
+    updateParameterDisplays();
+
+    // Fetch APIs
+    fetchTLP();
+    fetchIPCA();
+
+    console.log('Simulador FDCO Mobile v2.2.1 - Pronto!');
+});
+    </script>
+</body>
+</html>

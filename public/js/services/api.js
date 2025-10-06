@@ -459,7 +459,8 @@ class ApiService {
         try {
             console.log('🔄 Tentando buscar IPCA do IBGE...');
 
-            const response = await fetch('https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-2/variaveis/63?localidades=N1[all]', {
+            // Buscar últimos 3 períodos para ter flexibilidade
+            const response = await fetch('https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-3/variaveis/63?localidades=N1[all]', {
                 method: 'GET',
                 mode: 'cors',
                 headers: {
@@ -475,30 +476,43 @@ class ApiService {
 
             if (data && data[0] && data[0].resultados && data[0].resultados[0] && data[0].resultados[0].series) {
                 const series = data[0].resultados[0].series[0].serie;
-                const periods = Object.keys(series).slice(-2);
+                const allPeriods = Object.keys(series);
 
-                console.log(`📊 Períodos IPCA retornados pela API: ${periods[0]} e ${periods[1]}`);
+                console.log(`📊 Períodos IPCA retornados pela API: ${allPeriods.join(', ')}`);
 
-                if (periods.length >= 2) {
-                    const ipcaM2 = parseFloat(series[periods[0]]) / 100; // Período mais antigo = M-2
-                    const ipcaM1 = parseFloat(series[periods[1]]) / 100; // Período mais recente = M-1
+                // REGRA DO DIA 10: Seleção de IPCAs
+                // - Antes do dia 10: IPCA M-1 ainda não divulgado, usar últimos 2 disponíveis (M-2, M-3)
+                // - Depois do dia 10: IPCA M-1 já divulgado, usar últimos 2 disponíveis (M-1, M-2)
+                const hoje = new Date();
+                const diaAtual = hoje.getDate();
+                const antesDoIPCA = diaAtual < 10;
 
-                    this.tfdParameters.ipca_m1 = ipcaM1;
-                    this.tfdParameters.ipca_m2 = ipcaM2;
+                // SEMPRE usar os últimos 2 IPCAs disponíveis da API
+                const periods = allPeriods.slice(-2);
+                const periodM2 = periods[0]; // Mais antigo = M-3 (antes dia 10) ou M-2 (depois dia 10)
+                const periodM1 = periods[1]; // Mais recente = M-2 (antes dia 10) ou M-1 (depois dia 10)
+                const ipcaM2 = parseFloat(series[periodM2]) / 100;
+                const ipcaM1 = parseFloat(series[periodM1]) / 100;
 
-                    console.log(`✅ IPCA atualizado - Período ${periods[0]} (M-2): ${(ipcaM2*100).toFixed(2)}%, Período ${periods[1]} (M-1): ${(ipcaM1*100).toFixed(2)}%`);
-
-                    // Salvar no cache
-                    this.saveToCache();
-
-                    const ipcaM1Display = document.getElementById('ipca-m1-display');
-                    const ipcaM2Display = document.getElementById('ipca-m2-display');
-
-                    if (ipcaM1Display) ipcaM1Display.textContent = `${(ipcaM1*100).toFixed(2)}%`;
-                    if (ipcaM2Display) ipcaM2Display.textContent = `${(ipcaM2*100).toFixed(2)}%`;
-
-                    return { ipcaM1, ipcaM2, periods };
+                if (antesDoIPCA) {
+                    console.log(`📅 Antes do dia 10: IPCA M-3=${periodM2} (${(ipcaM2*100).toFixed(4)}%), M-2=${periodM1} (${(ipcaM1*100).toFixed(4)}%)`);
+                } else {
+                    console.log(`📅 Depois do dia 10: IPCA M-2=${periodM2} (${(ipcaM2*100).toFixed(4)}%), M-1=${periodM1} (${(ipcaM1*100).toFixed(4)}%)`);
                 }
+
+                this.tfdParameters.ipca_m1 = ipcaM1;
+                this.tfdParameters.ipca_m2 = ipcaM2;
+
+                // Salvar no cache
+                this.saveToCache();
+
+                const ipcaM1Display = document.getElementById('ipca-m1-display');
+                const ipcaM2Display = document.getElementById('ipca-m2-display');
+
+                if (ipcaM1Display) ipcaM1Display.textContent = `${(ipcaM1*100).toFixed(2)}%`;
+                if (ipcaM2Display) ipcaM2Display.textContent = `${(ipcaM2*100).toFixed(2)}%`;
+
+                return { ipcaM1, ipcaM2, periods: [periodM2, periodM1] };
             }
             throw new Error('Dados IPCA não encontrados');
         } catch (error) {

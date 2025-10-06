@@ -9,41 +9,51 @@ class CalculatorService {
             'D': 1.45  // Demais setores - DEMAIS
         };
 
+        // Limites setoriais conforme Resolução CMN 4.960/2021
         this.sectorLimits = {
+            // SANEAMENTO - 80% prioritária, 70% demais
             'infraestrutura_saneamento_III': { prioritaria: 80, demais: 70 },
-            'infraestrutura_transportes_I': { prioritaria: 80, demais: 70 },
-            'infraestrutura_armazenagem_II': { prioritaria: 80, demais: 70 },
-            'infraestrutura_residuos_IV': { prioritaria: 80, demais: 70 },
-            'infraestrutura_gas_V': { prioritaria: 80, demais: 70 },
-            'infraestrutura_petroleo_VI': { prioritaria: 80, demais: 70 },
-            'infraestrutura_logistica_VII': { prioritaria: 80, demais: 70 },
-            'infraestrutura_telecomunicacoes_VIII': { prioritaria: 80, demais: 70 },
-            'infraestrutura_energia_X': { prioritaria: 80, demais: 70 },
-            'infraestrutura_urbana_XI': { prioritaria: 80, demais: 70 },
-            'infraestrutura_portuaria_IX': { prioritaria: 80, demais: 70 },
-            'infraestrutura_estruturador': { prioritaria: 80, demais: 70 },
-            'servicos_publicos': { prioritaria: 80, demais: 70 },
-            'servicos_turismo_I': { prioritaria: 80, demais: 70 },
-            'servicos_hospitalares_II': { prioritaria: 80, demais: 70 },
-            'servicos_transporte_passageiros_III': { prioritaria: 80, demais: 70 },
-            'servicos_educacionais_IV': { prioritaria: 80, demais: 70 },
-            'tradicionais_agricultura_I': { prioritaria: 80, demais: 70 },
-            'tradicionais_veiculos_II': { prioritaria: 80, demais: 70 },
-            'tradicionais_couros_III_a': { prioritaria: 80, demais: 70 },
-            'tradicionais_plasticos_III_b': { prioritaria: 80, demais: 70 },
-            'tradicionais_latex_III_c': { prioritaria: 80, demais: 70 },
-            'tradicionais_textil_III_d': { prioritaria: 80, demais: 70 },
-            'tradicionais_maquinas_III_e': { prioritaria: 80, demais: 70 },
-            'tradicionais_minerais_III_f': { prioritaria: 80, demais: 70 },
-            'tradicionais_quimicos_III_g': { prioritaria: 80, demais: 70 },
-            'tradicionais_moveis_madeira_III_h': { prioritaria: 80, demais: 70 },
-            'tradicionais_alimentos_III_i': { prioritaria: 80, demais: 70 },
-            'tradicionais_papel_III_j': { prioritaria: 80, demais: 70 },
-            'tradicionais_farmaceuticos_III_k': { prioritaria: 80, demais: 70 },
-            'tradicionais_produtos_higiene_III_l': { prioritaria: 80, demais: 70 },
-            'cti_pesquisa_I': { prioritaria: 80, demais: 70 },
-            'cti_desenvolvimento_II': { prioritaria: 80, demais: 70 },
-            'cti_inovacao_III': { prioritaria: 80, demais: 70 }
+
+            // INFRAESTRUTURA (exceto saneamento) - 60% prioritária, 50% demais
+            'infraestrutura_transportes_I': { prioritaria: 60, demais: 50 },
+            'infraestrutura_armazenagem_II': { prioritaria: 60, demais: 50 },
+            'infraestrutura_residuos_IV': { prioritaria: 60, demais: 50 },
+            'infraestrutura_gas_V': { prioritaria: 60, demais: 50 },
+            'infraestrutura_petroleo_VI': { prioritaria: 60, demais: 50 },
+            'infraestrutura_logistica_VII': { prioritaria: 60, demais: 50 },
+            'infraestrutura_telecomunicacoes_VIII': { prioritaria: 60, demais: 50 },
+            'infraestrutura_energia_X': { prioritaria: 60, demais: 50 },
+            'infraestrutura_urbana_XI': { prioritaria: 60, demais: 50 },
+            'infraestrutura_portuaria_IX': { prioritaria: 60, demais: 50 },
+
+            // ESTRUTURADOR - 55% prioritária, 45% demais
+            'infraestrutura_estruturador': { prioritaria: 55, demais: 45 },
+
+            // SERVIÇOS PÚBLICOS - 60% prioritária, 50% demais
+            'servicos_publicos': { prioritaria: 60, demais: 50 },
+            'servicos_turismo_I': { prioritaria: 60, demais: 50 },
+            'servicos_hospitalares_II': { prioritaria: 60, demais: 50 },
+            'servicos_transporte_passageiros_III': { prioritaria: 60, demais: 50 },
+            'servicos_educacionais_IV': { prioritaria: 60, demais: 50 },
+
+            // OUTROS SETORES (Tradicionais e C&T&I) - 50% prioritária, 40% demais
+            'tradicionais_agricultura_I': { prioritaria: 50, demais: 40 },
+            'tradicionais_veiculos_II': { prioritaria: 50, demais: 40 },
+            'tradicionais_couros_III_a': { prioritaria: 50, demais: 40 },
+            'tradicionais_plasticos_III_b': { prioritaria: 50, demais: 40 },
+            'tradicionais_latex_III_c': { prioritaria: 50, demais: 40 },
+            'tradicionais_textil_III_d': { prioritaria: 50, demais: 40 },
+            'tradicionais_maquinas_III_e': { prioritaria: 50, demais: 40 },
+            'tradicionais_minerais_III_f': { prioritaria: 50, demais: 40 },
+            'tradicionais_quimicos_III_g': { prioritaria: 50, demais: 40 },
+            'tradicionais_moveis_madeira_III_h': { prioritaria: 50, demais: 40 },
+            'tradicionais_alimentos_III_i': { prioritaria: 50, demais: 40 },
+            'tradicionais_papel_III_j': { prioritaria: 50, demais: 40 },
+            'tradicionais_farmaceuticos_III_k': { prioritaria: 50, demais: 40 },
+            'tradicionais_produtos_higiene_III_l': { prioritaria: 50, demais: 40 },
+            'cti_pesquisa_I': { prioritaria: 50, demais: 40 },
+            'cti_desenvolvimento_II': { prioritaria: 50, demais: 40 },
+            'cti_inovacao_III': { prioritaria: 50, demais: 40 }
         };
 
         this.standardLimit = 50000000; // R$ 50 milhões
@@ -53,11 +63,20 @@ class CalculatorService {
     calculateFAM() {
         const params = apiService.getTfdParameters();
         const { ipca_m1, ipca_m2, ndup, ndus, ndmp, ndms } = params;
-        const pi_m1 = parseFloat(ipca_m1.toFixed(3));
-        const pi_m2 = parseFloat(ipca_m2.toFixed(3));
+        // NÃO arredondar IPCAs - usar valores exatos!
+        const pi_m1 = ipca_m1;
+        const pi_m2 = ipca_m2;
         const termo1 = Math.pow(1 + pi_m2, ndup / ndmp);
         const termo2 = Math.pow(1 + pi_m1, ndus / ndms);
         const fam = termo1 * termo2;
+
+        console.log('📊 Cálculo FAM:');
+        console.log(`   IPCA M-1: ${(pi_m1*100).toFixed(4)}% (valor exato: ${pi_m1})`);
+        console.log(`   IPCA M-2: ${(pi_m2*100).toFixed(4)}% (valor exato: ${pi_m2})`);
+        console.log(`   termo1 = (1+${pi_m2})^(${ndup}/${ndmp}) = ${termo1.toFixed(9)}`);
+        console.log(`   termo2 = (1+${pi_m1})^(${ndus}/${ndms}) = ${termo2.toFixed(9)}`);
+        console.log(`   FAM = ${fam.toFixed(9)}`);
+
         return parseFloat(fam.toFixed(9));
     }
 
