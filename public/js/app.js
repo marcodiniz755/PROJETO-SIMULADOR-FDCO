@@ -2,7 +2,7 @@
 
 class SimuladorFDCO {
     constructor() {
-        this.version = '2.2.6';
+        this.version = '2.2.7';
         this.isInitialized = false;
     }
 
