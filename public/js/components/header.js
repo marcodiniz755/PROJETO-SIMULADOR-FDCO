@@ -3,7 +3,7 @@
 class HeaderComponent {
     constructor() {
         this.currentDate = new Date().toLocaleDateString('pt-BR');
-        this.version = '2.2.3';
+        this.version = '2.2.4';
     }
 
     render() {

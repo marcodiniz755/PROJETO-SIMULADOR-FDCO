@@ -4,7 +4,7 @@ class HistoricalDataService {
     constructor() {
         this.cacheKey = 'fdco_historical_tfd_cache';
         this.cacheDuration = 24 * 60 * 60 * 1000; // 24 horas
-        this.cacheVersion = 4; // Incrementar quando mudar lógica de cálculo
+        this.cacheVersion = 5; // Incrementar quando mudar lógica de cálculo
     }
 
     // Carregar dados históricos do cache
@@ -246,14 +246,14 @@ class HistoricalDataService {
             let ipcaM1Index, ipcaM2Index;
 
             if (antesDoIPCA) {
-                // ANTES DO DIA 10: usar IPCA M-2 e M-3
-                // Outubro (mesesAtras=0): M-2=agosto, M-3=julho
-                // Setembro (mesesAtras=1): M-2=julho, M-3=junho
-                // Agosto (mesesAtras=2): M-2=junho, M-3=maio
-                const ultimoIPCAIndex = ipcaData.length - 1; // Último IPCA disponível
-                ipcaM1Index = ultimoIPCAIndex - mesesAtras;     // M-2 (mais recente)
-                ipcaM2Index = ultimoIPCAIndex - 1 - mesesAtras; // M-3 (mais antigo)
-                console.log(`  ⚠️ Antes do dia 10: usando IPCA M-2 e M-3`);
+                // ANTES DO DIA 10: o IPCA do mês anterior ainda não é "oficial"
+                // Mesmo que esteja na API, desconsideramos o último IPCA
+                // Outubro (mesesAtras=0): M-2=agosto, M-3=julho (ignora setembro)
+                // Setembro (mesesAtras=1): M-2=julho, M-3=junho (ignora agosto)
+                const ultimoIPCAValidoIndex = ipcaData.length - 2; // Ignora o último IPCA
+                ipcaM1Index = ultimoIPCAValidoIndex - mesesAtras;     // M-2 (mais recente válido)
+                ipcaM2Index = ultimoIPCAValidoIndex - 1 - mesesAtras; // M-3 (mais antigo)
+                console.log(`  ⚠️ Antes do dia 10: ignorando último IPCA, usando M-2 e M-3`);
             } else {
                 // DIA 10 OU DEPOIS: usar IPCA M-1 e M-2
                 // Outubro (mesesAtras=0): M-1=setembro, M-2=agosto
