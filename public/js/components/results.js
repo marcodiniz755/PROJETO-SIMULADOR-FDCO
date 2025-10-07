@@ -117,7 +117,7 @@ class ResultsComponent {
                     <span class="icon-fallback">📈</span> Detalhes do Financiamento
                 </h4>
                 <div class="result-item-large">
-                    <span class="result-label-large">Recursos Próprios</span>
+                    <span class="result-label-large">Recursos Próprios e de Terceiros</span>
                     <span class="result-value-large" id="ownResourcesAmount">R$ 0,00</span>
                 </div>
                 <div class="result-item-large">

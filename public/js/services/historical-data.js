@@ -4,7 +4,7 @@ class HistoricalDataService {
     constructor() {
         this.cacheKey = 'fdco_historical_tfd_cache';
         this.cacheDuration = 24 * 60 * 60 * 1000; // 24 horas
-        this.cacheVersion = 3; // Incrementar quando mudar lógica de cálculo
+        this.cacheVersion = 4; // Incrementar quando mudar lógica de cálculo
     }
 
     // Carregar dados históricos do cache
@@ -251,16 +251,16 @@ class HistoricalDataService {
                 // Setembro (mesesAtras=1): M-2=julho, M-3=junho
                 // Agosto (mesesAtras=2): M-2=junho, M-3=maio
                 const ultimoIPCAIndex = ipcaData.length - 1; // Último IPCA disponível
-                ipcaM1Index = ultimoIPCAIndex - 1 - mesesAtras; // M-2
-                ipcaM2Index = ultimoIPCAIndex - 2 - mesesAtras; // M-3
+                ipcaM1Index = ultimoIPCAIndex - mesesAtras;     // M-2 (mais recente)
+                ipcaM2Index = ultimoIPCAIndex - 1 - mesesAtras; // M-3 (mais antigo)
                 console.log(`  ⚠️ Antes do dia 10: usando IPCA M-2 e M-3`);
             } else {
                 // DIA 10 OU DEPOIS: usar IPCA M-1 e M-2
                 // Outubro (mesesAtras=0): M-1=setembro, M-2=agosto
                 // Setembro (mesesAtras=1): M-1=agosto, M-2=julho
                 const ultimoIPCAIndex = ipcaData.length - 1;
-                ipcaM1Index = ultimoIPCAIndex - mesesAtras;     // M-1
-                ipcaM2Index = ultimoIPCAIndex - 1 - mesesAtras; // M-2
+                ipcaM1Index = ultimoIPCAIndex - mesesAtras;     // M-1 (mais recente)
+                ipcaM2Index = ultimoIPCAIndex - 1 - mesesAtras; // M-2 (mais antigo)
                 console.log(`  ✓ Depois do dia 10: usando IPCA M-1 e M-2`);
             }
 
@@ -277,18 +277,18 @@ class HistoricalDataService {
                 console.log(`  → ndmp=${monthParam.ndmp}, ndms=${monthParam.ndms}, ndup=${monthParam.ndup}, ndus=${monthParam.ndus}`);
 
                 // Calcular FAM usando parâmetros históricos do mês
-                // FAM = (1 + IPCA_primeiro)^(ndup/ndmp) × (1 + IPCA_segundo)^(ndus/ndms)
-                // Antes do dia 10: primeiro=M-3 (julho), segundo=M-2 (agosto)
-                // Depois do dia 10: primeiro=M-2 (agosto), segundo=M-1 (setembro)
+                // FAM = (1 + IPCA_mais_antigo)^(ndup/ndmp) × (1 + IPCA_mais_recente)^(ndus/ndms)
+                // Antes do dia 10: mais_antigo=M-3 (ipcaM2), mais_recente=M-2 (ipcaM1)
+                // Depois do dia 10: mais_antigo=M-2 (ipcaM2), mais_recente=M-1 (ipcaM1)
                 const exp1 = monthParam.ndup / monthParam.ndmp;
                 const exp2 = monthParam.ndus / monthParam.ndms;
-                const termo1 = Math.pow(1 + ipcaM1, exp1);
-                const termo2 = Math.pow(1 + ipcaM2, exp2);
+                const termo1 = Math.pow(1 + ipcaM2, exp1);  // mais antigo
+                const termo2 = Math.pow(1 + ipcaM1, exp2);  // mais recente
                 const fam = termo1 * termo2;
 
                 console.log(`  → exp1=${exp1.toFixed(6)}, exp2=${exp2.toFixed(6)}`);
-                console.log(`  → termo1=(1+${(ipcaM1*100).toFixed(4)}%)^${exp1.toFixed(4)}=${termo1.toFixed(9)}`);
-                console.log(`  → termo2=(1+${(ipcaM2*100).toFixed(4)}%)^${exp2.toFixed(4)}=${termo2.toFixed(9)}`);
+                console.log(`  → termo1=(1+${(ipcaM2*100).toFixed(4)}%)^${exp1.toFixed(4)}=${termo1.toFixed(9)}`);
+                console.log(`  → termo2=(1+${(ipcaM1*100).toFixed(4)}%)^${exp2.toFixed(4)}=${termo2.toFixed(9)}`);
                 console.log(`  → FAM = ${fam.toFixed(9)}`);
 
                 // Calcular TFD para cada tipo (A, B, C, D)

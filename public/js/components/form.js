@@ -644,7 +644,7 @@ class FormComponent {
 
                 <div class="form-group required">
                     <label for="ownResources">
-                        <span class="icon-fallback">💼</span> Recursos Próprios (%)
+                        <span class="icon-fallback">💼</span> Recursos Próprios e de Terceiros (%)
                     </label>
                     <input type="number" id="ownResources" value="20" min="20" max="100" step="1" data-type="percentage" data-min="20" data-max="100">
                     <div id="ownResourcesHint" style="margin-top: 8px; font-size: 0.8rem; line-height: 1.3;"></div>
