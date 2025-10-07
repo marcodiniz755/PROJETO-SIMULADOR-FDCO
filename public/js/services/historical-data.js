@@ -4,7 +4,7 @@ class HistoricalDataService {
     constructor() {
         this.cacheKey = 'fdco_historical_tfd_cache';
         this.cacheDuration = 24 * 60 * 60 * 1000; // 24 horas
-        this.cacheVersion = 6; // Incrementar quando mudar lógica de cálculo
+        this.cacheVersion = 7; // Incrementar quando mudar lógica de cálculo
     }
 
     // Carregar dados históricos do cache
@@ -238,39 +238,47 @@ class HistoricalDataService {
                 continue;
             }
 
-            // REGRA IMPORTANTE: Seleção de IPCAs baseada no dia do mês
-            // - Para mês ATUAL antes do dia 10: IPCA do mês anterior ainda NÃO foi divulgado → usar M-2 e M-3
-            // - Para mês ATUAL dia 10 ou depois: IPCA do mês anterior JÁ foi divulgado → usar M-1 e M-2
-            // - Para meses PASSADOS: sempre usar M-1 e M-2 (já passou o dia 10 daquele mês)
+            // REGRA IMPORTANTE: Seleção de IPCAs baseada no dia do mês e no último IPCA disponível
+            // - Verificar qual é o último período na API (pode ser agosto ou setembro)
+            // - Se hoje é antes do dia 10 E o último IPCA é do mês anterior, ignorá-lo
+            // - Meses passados sempre usam M-1 e M-2
 
             // Calcular quantos meses atrás está este registro
             const mesesAtras = (tlpData.length - 1) - i;
 
             const hoje = new Date();
+            const mesAtual = hoje.getMonth(); // 0=jan, 9=out
+            const anoAtual = hoje.getFullYear();
             const diaAtual = hoje.getDate();
 
-            // Apenas o mês ATUAL (mesesAtras=0) pode estar "antes do dia 10"
-            // Meses passados (mesesAtras>0) sempre já passaram do dia 10
-            const antesDoIPCA = (mesesAtras === 0) && (diaAtual < 10);
+            // Verificar qual é o último IPCA disponível na API
+            const ultimoPeriodoIPCA = ipcaData[ipcaData.length - 1].period; // Ex: "202508" ou "202509"
+            const ultimoMesIPCA = parseInt(ultimoPeriodoIPCA.slice(4, 6)) - 1; // 0-11
+            const ultimoAnoIPCA = parseInt(ultimoPeriodoIPCA.slice(0, 4));
+
+            // Verificar se o último IPCA é do mês anterior ao atual
+            const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1;
+            const anoMesAnterior = mesAtual === 0 ? anoAtual - 1 : anoAtual;
+            const ultimoIPCAeMesAnterior = (ultimoMesIPCA === mesAnterior && ultimoAnoIPCA === anoMesAnterior);
+
+            // Se estamos antes do dia 10 E o último IPCA é do mês anterior, ele não é oficial ainda
+            const antesDoIPCA = (mesesAtras === 0) && (diaAtual < 10) && ultimoIPCAeMesAnterior;
 
             let ipcaM1Index, ipcaM2Index;
 
             if (antesDoIPCA) {
-                // MÊS ATUAL ANTES DO DIA 10: o IPCA do mês anterior ainda não é "oficial"
-                // Ignoramos o último IPCA disponível na API
-                // Outubro (antes dia 10): M-2=agosto, M-3=julho (ignora setembro)
-                const ultimoIPCAValidoIndex = ipcaData.length - 2; // Ignora o último IPCA
-                ipcaM1Index = ultimoIPCAValidoIndex - mesesAtras;     // M-2 (mais recente válido)
-                ipcaM2Index = ultimoIPCAValidoIndex - 1 - mesesAtras; // M-3 (mais antigo)
-                console.log(`  ⚠️ Mês atual antes do dia 10: ignorando último IPCA, usando M-2 e M-3`);
+                // MÊS ATUAL ANTES DO DIA 10 E último IPCA é do mês anterior (não oficial)
+                // Outubro antes dia 10, último IPCA=setembro: M-2=agosto, M-3=julho (ignora setembro)
+                const ultimoIPCAValidoIndex = ipcaData.length - 2; // Ignora o último IPCA (setembro)
+                ipcaM1Index = ultimoIPCAValidoIndex - mesesAtras;     // M-2 (agosto)
+                ipcaM2Index = ultimoIPCAValidoIndex - 1 - mesesAtras; // M-3 (julho)
+                console.log(`  ⚠️ Mês atual antes do dia 10, ignorando IPCA ${ultimoPeriodoIPCA}, usando M-2 e M-3`);
             } else {
                 // MÊS ATUAL DEPOIS DO DIA 10 ou MESES PASSADOS: usar M-1 e M-2
-                // Outubro (após dia 10): M-1=setembro, M-2=agosto
-                // Setembro (passado): M-1=agosto, M-2=julho
                 const ultimoIPCAIndex = ipcaData.length - 1;
                 ipcaM1Index = ultimoIPCAIndex - mesesAtras;     // M-1 (mais recente)
                 ipcaM2Index = ultimoIPCAIndex - 1 - mesesAtras; // M-2 (mais antigo)
-                console.log(`  ✓ ${mesesAtras === 0 ? 'Mês atual após dia 10' : 'Mês passado'}: usando M-1 e M-2`);
+                console.log(`  ✓ ${mesesAtras === 0 ? 'Mês atual (último IPCA válido)' : 'Mês passado'}: usando M-1 e M-2, último=${ultimoPeriodoIPCA}`);
             }
 
             console.log(`📅 ${monthParam.mes} (${mesesAtras} meses atrás): TLP=${tlp.value}%, DU=${monthParam.du}`);
