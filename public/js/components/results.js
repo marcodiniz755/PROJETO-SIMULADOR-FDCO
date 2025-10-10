@@ -42,10 +42,12 @@ class ResultsComponent {
                     
                     <div style="margin: 20px 0; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
                         <div style="font-size: 1rem; color: #856404; margin-bottom: 10px;">
-                            <strong>📚 SIMULADOR EDUCACIONAL</strong>
+                            <strong>⚠️ ATENÇÃO - SIMULADOR EDUCACIONAL</strong>
                         </div>
                         <div style="font-size: 0.85rem; color: #856404; line-height: 1.5;">
-                            Este simulador tem fins exclusivamente educacionais e de demonstração. Os dados obtidos nas parcelas SAC é considerando o dia do pagamento nesta data. No caso do financiamento REAL quem define esses valores é o Banco (Agente Operador), na data que vencer o pagamento da parcela. Para consultas oficiais, acesse:
+                            Este simulador é destinado exclusivamente para fins educacionais e de demonstração!<br>
+                            Os valores apresentados nas parcelas pelo sistema SAC consideram a data atual como data de pagamento. No entanto, em um financiamento real, os valores finais são definidos pelo banco (agente operador) na data de vencimento de cada parcela.<br>
+                            Para informações oficiais e valores precisos, consulte diretamente a instituição financeira responsável. Demais informações acesse:
                         </div>
                         <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.85rem;">
                             <a href="https://www.gov.br/sudeco" target="_blank" style="color: #0066cc; text-decoration: none;">
@@ -264,9 +266,10 @@ class ResultsComponent {
             statusDiv.style.display = 'block';
             statusDiv.className = 'alert alert-warning';
             statusDiv.innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i> 
+                <i class="fas fa-exclamation-triangle"></i>
                 <strong>⚠️ DELIBERAÇÃO DIRETORIA COLEGIADA NECESSÁRIA!</strong><br>
-                O valor do financiamento FDCO (${formatterService.formatCurrency(fdcoAmount)}) supera o limite anual padrão de ${formatterService.formatCurrency(standardLimit)} por Grupo Empresarial, conforme Resolução CONDEL/SUDECO 144/2023. Este projeto requer aprovação da DIRETORIA COLEGIADA.<br>
+                O valor solicitado para financiamento via FDCO (${formatterService.formatCurrency(fdcoAmount)}) ultrapassa o limite anual de ${formatterService.formatCurrency(standardLimit)} por empresa ou grupo econômico, conforme a Resolução CONDEL/SUDECO nº 144/2023.<br>
+                Por isso, a concessão de valores acima desse limite fica sob responsabilidade da Diretoria Colegiada da Sudeco, que avaliará se o projeto é de alta relevância e estruturante para o desenvolvimento econômico e social da região Centro-Oeste, preferencialmente em municípios classificados como média renda, segundo a PNDR.<br>
                 Taxa TFD: ${tfdRate.toFixed(2)}% a.a.`;
         } else {
             statusDiv.style.display = 'block';

@@ -638,7 +638,7 @@ class FormComponent {
                     <div id="fixedInvestmentHint" style="margin-top: 8px; font-size: 0.8rem; line-height: 1.3;"></div>
                     <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
                         <strong style="color: #856404;">⚠️ Importante:</strong>
-                        <span style="color: #856404; font-size: 0.85rem;"> FDCO NÃO FINANCIA INVESTIMENTO CIRCULANTE (CAPITAL DE GIRO)!</span>
+                        <span style="color: #856404; font-size: 0.85rem;"> FDCO NÃO FINANCIA INVESTIMENTO CIRCULANTE (CAPITAL DE GIRO)! Projetos que envolvam capital circulante deverão obrigatoriamente destinar pelo menos 10% dos recursos próprios da empresa aos investimentos fixos.</span>
                     </div>
                 </div>
 

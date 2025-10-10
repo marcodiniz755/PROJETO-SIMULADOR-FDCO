@@ -4,7 +4,7 @@ class HistoricalDataService {
     constructor() {
         this.cacheKey = 'fdco_historical_tfd_cache';
         this.cacheDuration = 24 * 60 * 60 * 1000; // 24 horas
-        this.cacheVersion = 8; // Incrementar quando mudar lógica de cálculo
+        this.cacheVersion = 9; // Incrementar quando mudar lógica de cálculo (v9: simplificado para sempre usar M-1 e M-2)
     }
 
     // Carregar dados históricos do cache
@@ -238,56 +238,32 @@ class HistoricalDataService {
                 continue;
             }
 
-            // NOVA LÓGICA: Determinar o "último IPCA oficial" e usar para TODOS os meses recentes
-            // Meses recentes (últimos 2 meses) usam o mesmo IPCA base
-            // Meses antigos precisam calcular qual IPCA estava disponível naquela época
+            // SIMPLIFICADO: Todos os meses históricos usam IPCA m-2 e m-1
+            // Cada mês usa o IPCA que estava disponível naquela época (com offset)
 
             const hoje = new Date();
-            const mesAtual = hoje.getMonth(); // 0=jan, 9=out
-            const anoAtual = hoje.getFullYear();
             const diaAtual = hoje.getDate();
 
-            // Verificar qual é o último IPCA disponível na API
-            const ultimoPeriodoIPCA = ipcaData[ipcaData.length - 1].period; // Ex: "202508" ou "202509"
-            const ultimoMesIPCA = parseInt(ultimoPeriodoIPCA.slice(4, 6)) - 1; // 0-11
-            const ultimoAnoIPCA = parseInt(ultimoPeriodoIPCA.slice(0, 4));
+            // Determinar o índice do "último IPCA oficial disponível"
+            // Sempre usar os últimos 2 IPCAs disponíveis na API
+            const ultimoIPCAOficialIndex = ipcaData.length - 1; // Usa o último IPCA disponível
+            const ultimoPeriodoIPCA = ipcaData[ultimoIPCAOficialIndex].period;
 
-            // Verificar se o último IPCA é do mês anterior ao atual
-            const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1;
-            const anoMesAnterior = mesAtual === 0 ? anoAtual - 1 : anoAtual;
-            const ultimoIPCAeMesAnterior = (ultimoMesIPCA === mesAnterior && ultimoAnoIPCA === anoMesAnterior);
+            console.log(`  ✓ Último IPCA disponível na API: ${ultimoPeriodoIPCA}`);
 
-            // Determinar o índice do "último IPCA oficial"
-            // Se hoje é antes do dia 10 E o último IPCA é do mês anterior, usar o penúltimo
-            let ultimoIPCAOficialIndex;
-            let antesDoIPCA = false;
-
-            if (diaAtual < 10 && ultimoIPCAeMesAnterior) {
-                ultimoIPCAOficialIndex = ipcaData.length - 2; // Ignora o último IPCA
-                antesDoIPCA = true;
-                console.log(`  ⚠️ Hoje antes do dia 10, último IPCA oficial = ${ipcaData[ultimoIPCAOficialIndex].period} (ignorando ${ultimoPeriodoIPCA})`);
-            } else {
-                ultimoIPCAOficialIndex = ipcaData.length - 1; // Usa o último IPCA
-                console.log(`  ✓ Último IPCA oficial = ${ultimoPeriodoIPCA}`);
-            }
-
-            // Para meses recentes (últimos 2-3 meses): usar o mesmo IPCA base
-            // Para meses antigos: calcular qual IPCA estava disponível
+            // Para cada mês histórico: calcular offset apropriado
+            // Outubro (0 meses atrás): usa índices [last, last-1] = M-1 e M-2
+            // Setembro (1 mês atrás): usa índices [last-1, last-2] = M-1 e M-2 de setembro
+            // Agosto (2 meses atrás): usa índices [last-2, last-3] = M-1 e M-2 de agosto
             const mesesAtras = (tlpData.length - 1) - i;
 
-            let ipcaM1Index, ipcaM2Index;
+            // Calcular índices com offset para cada mês
+            const ipcaM1Index = ultimoIPCAOficialIndex - mesesAtras;     // M-1
+            const ipcaM2Index = ultimoIPCAOficialIndex - mesesAtras - 1; // M-2
 
-            if (mesesAtras <= 1) {
-                // Meses recentes (outubro e setembro): usar o mesmo IPCA oficial
-                ipcaM1Index = ultimoIPCAOficialIndex;     // M-1 ou M-2 (agosto)
-                ipcaM2Index = ultimoIPCAOficialIndex - 1; // M-2 ou M-3 (julho)
-                console.log(`  → Mês recente (${mesesAtras} meses atrás): usando último IPCA oficial`);
-            } else {
-                // Meses antigos: aplicar offset
-                ipcaM1Index = ultimoIPCAOficialIndex - (mesesAtras - 1);
-                ipcaM2Index = ipcaM1Index - 1;
-                console.log(`  → Mês antigo (${mesesAtras} meses atrás): usando IPCA com offset`);
-            }
+            console.log(`  → Mês histórico (${mesesAtras} meses atrás): offset aplicado`);
+
+            const antesDoIPCA = false; // Não precisa mais desta lógica
 
             console.log(`📅 ${monthParam.mes} (${mesesAtras} meses atrás): TLP=${tlp.value}%, DU=${monthParam.du}`);
 
@@ -295,20 +271,16 @@ class HistoricalDataService {
                 const ipcaM1 = ipcaData[ipcaM1Index].value / 100;
                 const ipcaM2 = ipcaData[ipcaM2Index].value / 100;
 
-                const labelM1 = antesDoIPCA ? 'M-2' : 'M-1';
-                const labelM2 = antesDoIPCA ? 'M-3' : 'M-2';
-
-                console.log(`  → IPCA ${labelM1}=${ipcaData[ipcaM1Index].period} (${(ipcaM1*100).toFixed(4)}%), IPCA ${labelM2}=${ipcaData[ipcaM2Index].period} (${(ipcaM2*100).toFixed(4)}%)`);
+                console.log(`  → IPCA M-1=${ipcaData[ipcaM1Index].period} (${(ipcaM1*100).toFixed(4)}%), IPCA M-2=${ipcaData[ipcaM2Index].period} (${(ipcaM2*100).toFixed(4)}%)`);
                 console.log(`  → ndmp=${monthParam.ndmp}, ndms=${monthParam.ndms}, ndup=${monthParam.ndup}, ndus=${monthParam.ndus}`);
 
                 // Calcular FAM usando parâmetros históricos do mês
-                // FAM = (1 + IPCA_mais_antigo)^(ndup/ndmp) × (1 + IPCA_mais_recente)^(ndus/ndms)
-                // Antes do dia 10: mais_antigo=M-3 (ipcaM2), mais_recente=M-2 (ipcaM1)
-                // Depois do dia 10: mais_antigo=M-2 (ipcaM2), mais_recente=M-1 (ipcaM1)
+                // FAM = (1 + IPCA_M2)^(ndup/ndmp) × (1 + IPCA_M1)^(ndus/ndms)
+                // Sempre usa M-2 (mais antigo) e M-1 (mais recente)
                 const exp1 = monthParam.ndup / monthParam.ndmp;
                 const exp2 = monthParam.ndus / monthParam.ndms;
-                const termo1 = Math.pow(1 + ipcaM2, exp1);  // mais antigo
-                const termo2 = Math.pow(1 + ipcaM1, exp2);  // mais recente
+                const termo1 = Math.pow(1 + ipcaM2, exp1);  // M-2 (mais antigo)
+                const termo2 = Math.pow(1 + ipcaM1, exp2);  // M-1 (mais recente)
                 const fam = termo1 * termo2;
 
                 console.log(`  → exp1=${exp1.toFixed(6)}, exp2=${exp2.toFixed(6)}`);

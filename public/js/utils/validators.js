@@ -223,7 +223,7 @@ class ValidatorService {
         const regionName2 = location === 'prioritaria' ? 'PRIORITÁRIA' : 'DEMAIS';
         const needsApproval = fdcoLimit > 50000000; // standardLimit
         
-        hintElement.innerHTML = `✅ <strong>Limite FDCO: ${window.formatCurrency(fdcoLimit)}</strong><br>• Setorial (${sectorLimitPerc}% do total): ${window.formatCurrency(maxBySector)}<br>• 90% do investimento fixo: ${window.formatCurrency(maxByFixedRule)}<br>• 80% financiável do total: ${window.formatCurrency(maxByFinanciable)}<br>• Limite padrão: ${window.formatCurrency(50000000)}<br>Região ${regionName2}`;
+        hintElement.innerHTML = `✅ <strong>Limite FDCO: ${window.formatCurrency(fdcoLimit)}</strong><br>• Setorial (${sectorLimitPerc}% do total): ${window.formatCurrency(maxBySector)}<br>• 90% do investimento fixo: ${window.formatCurrency(maxByFixedRule)}<br>• Limite padrão: ${window.formatCurrency(50000000)}<br>Região ${regionName2}`;
         hintElement.style.color = needsApproval ? '#856404' : '#155724';
     }
 
